@@ -3,9 +3,9 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-8892BF.svg)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D9.0-FF2D20.svg)](https://laravel.com)
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/ernestoch/laravel-user-auditable.svg?style=flat-square)](https://packagist.org/packages/ernestoch/laravel-user-auditable)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/ernestoch/laravel-user-auditable.svg?style=flat-square)](https://packagist.org/packages/ernestoch/user-auditable-for-laravel)
 [![Tests](https://github.com/3rn3st0/user-auditable-for-laravel/actions/workflows/test.yml/badge.svg)](https://github.com/3rn3st0/user-auditable-for-laravel/actions/workflows/test.yml)
-[![Total Downloads](https://img.shields.io/packagist/dt/ernestoch/laravel-user-auditable.svg?style=flat-square)](https://packagist.org/packages/ernestoch/laravel-user-auditable)
+[![Total Downloads](https://img.shields.io/packagist/dt/ernestoch/laravel-user-auditable.svg?style=flat-square)](https://packagist.org/packages/ernestoch/user-auditable-for-laravel)
 
 A Laravel package that provides user auditing capabilities for your database tables and Eloquent models. Easily track which users create, update, and delete records in your application.
 

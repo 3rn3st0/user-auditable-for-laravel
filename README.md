@@ -26,7 +26,7 @@ A Laravel package that provides user auditing capabilities for your database tab
 ## Installation
 
 ```bash
-composer require 3rn3st0/user-auditable-for-laravel
+composer require ernestoch/user-auditable-for-laravel
 ```
 
 ## Configuration

@@ -40,7 +40,7 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "version": "1.0.0",
+    "version": "1.0.1",
     "scripts": {
         "release:patch": "git tag v$(php -r \"echo explode('.', file_get_contents('composer.json'))[2]\") && git push --tags",
         "release:minor": "echo 'Update version in composer.json then run release:patch'",

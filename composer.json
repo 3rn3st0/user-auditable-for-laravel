@@ -2,7 +2,17 @@
     "name": "ernestoch/user-auditable-for-laravel",
     "description": "Laravel package for user auditing in migrations and models",
     "type": "library",
-    "keywords": ["laravel", "audit", "user", "migration", "model", "tracking", "audit", "auditable", "macros"],
+    "keywords": [
+        "laravel",
+        "audit",
+        "user",
+        "migration",
+        "model",
+        "tracking",
+        "audit",
+        "auditable",
+        "macros"
+    ],
     "license": "MIT",
     "authors": [
         {
@@ -40,7 +50,7 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "version": "1.0.2",
+    "version": "1.0.3",
     "scripts": {
         "release:patch": "php tagger.php",
         "release:minor": "echo 'Update version in composer.json then run release:patch'",

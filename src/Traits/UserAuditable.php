@@ -5,6 +5,7 @@ namespace ErnestoCh\UserAuditable\Traits;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 
@@ -76,7 +77,7 @@ trait UserAuditable
     /**
      * Get the user who created the record
      */
-    public function creator()
+    public function creator(): BelongsTo
     {
         $userModel = config('auth.providers.users.model', 'App\\Models\\User');
         return $this->belongsTo($userModel, 'created_by');
@@ -85,7 +86,7 @@ trait UserAuditable
     /**
      * Get the user who updated the record
      */
-    public function updater()
+    public function updater(): BelongsTo
     {
         $userModel = config('auth.providers.users.model', 'App\\Models\\User');
         return $this->belongsTo($userModel, 'updated_by');
@@ -94,7 +95,7 @@ trait UserAuditable
     /**
      * Get the user who deleted the record
      */
-    public function deleter()
+    public function deleter(): BelongsTo
     {
         $userModel = config('auth.providers.users.model', 'App\\Models\\User');
         return $this->belongsTo($userModel, 'deleted_by');

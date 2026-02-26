@@ -2,6 +2,12 @@
 
 All notable changes to `laravel-user-auditable` will be documented in this file.
 
+## [1.1.2] - 2026-02-26
+
+### Fixed
+- Fixed CI dependency conflicts for Laravel 12 compatibility.
+
+
 ## [1.1.1] - 2026-02-26
 
 ### Added

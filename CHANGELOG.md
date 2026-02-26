@@ -2,6 +2,11 @@
 
 All notable changes to `laravel-user-auditable` will be documented in this file.
 
+## [1.1.1] - 2026-02-26
+
+### Added
+- Added support for Laravel 12.0.
+
 ## [1.1.0] - 2026-02-26
 
 ### Added

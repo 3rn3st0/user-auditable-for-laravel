@@ -12,7 +12,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: 8.2
+        php-version: 8.3
         extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, mysqlnd, sqlite, pdo_sqlite
 
     - name: Debug MySQL
@@ -23,7 +23,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        composer install --no-interaction --no-progress
+        composer update --no-interaction --no-progress
 
     - name: Check environment
       run: |

@@ -11,18 +11,23 @@ use Illuminate\Support\Facades\Schema;
 trait UserAuditable
 {
     /**
+     * Cache for database column existence checks
+     */
+    protected static array $auditableColumnCache = [];
+
+    /**
      * Boot the UserAuditable trait
      */
     public static function bootUserAuditable(): void
     {
         static::creating(function (Model $model) {
-            if (Auth::check() && Schema::hasColumn($model->getTable(), 'created_by')) {
+            if (Auth::check() && static::hasAuditableColumn($model, 'created_by')) {
                 $model->created_by = Auth::id();
             }
         });
 
         static::updating(function (Model $model) {
-            if (Auth::check() && Schema::hasColumn($model->getTable(), 'updated_by')) {
+            if (Auth::check() && static::hasAuditableColumn($model, 'updated_by')) {
                 $model->updated_by = Auth::id();
             }
         });
@@ -31,7 +36,7 @@ trait UserAuditable
             if (
                 Auth::check()
                 && in_array(SoftDeletes::class, class_uses_recursive($model))
-                && Schema::hasColumn($model->getTable(), 'deleted_by')
+                && static::hasAuditableColumn($model, 'deleted_by')
             ) {
                 // Direct DB update to avoid triggering Eloquent updating event
                 $model->getConnection()
@@ -46,11 +51,26 @@ trait UserAuditable
         // Only record restoring if the model uses SoftDeletes
         if (method_exists(static::class, 'restoring')) {
             static::restoring(function (Model $model) {
-                if (Schema::hasColumn($model->getTable(), 'deleted_by')) {
+                if (Auth::check() && static::hasAuditableColumn($model, 'deleted_by')) {
                     $model->deleted_by = null;
                 }
             });
         }
+    }
+
+    /**
+     * Check if a specific column exists in the model's table and cache the result
+     */
+    protected static function hasAuditableColumn(Model $model, string $column): bool
+    {
+        $table = $model->getTable();
+        $key = "{$table}.{$column}";
+
+        if (!isset(static::$auditableColumnCache[$key])) {
+            static::$auditableColumnCache[$key] = Schema::hasColumn($table, $column);
+        }
+
+        return static::$auditableColumnCache[$key];
     }
 
     /**

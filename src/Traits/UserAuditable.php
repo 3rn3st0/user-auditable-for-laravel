@@ -4,6 +4,7 @@ namespace ErnestoCh\UserAuditable\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 
@@ -27,12 +28,18 @@ trait UserAuditable
         });
 
         static::deleting(function (Model $model) {
-            if (Auth::check() && Schema::hasColumn($model->getTable(), 'deleted_by')) {
-                // Only for soft deletes
-                if (method_exists($model, 'trashed')) {
-                    $model->deleted_by = Auth::id();
-                    $model->save();
-                }
+            if (
+                Auth::check()
+                && in_array(SoftDeletes::class, class_uses_recursive($model))
+                && Schema::hasColumn($model->getTable(), 'deleted_by')
+            ) {
+                // Direct DB update to avoid triggering Eloquent updating event
+                $model->getConnection()
+                      ->table($model->getTable())
+                      ->where($model->getKeyName(), $model->getKey())
+                      ->update(['deleted_by' => Auth::id()]);
+
+                $model->deleted_by = Auth::id();
             }
         });
 

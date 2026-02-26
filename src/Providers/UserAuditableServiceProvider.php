@@ -168,9 +168,13 @@ class UserAuditableServiceProvider extends ServiceProvider
 
     protected function statusColumn(): void
     {
-        Blueprint::macro('statusColumn', function (string $columnName = 'status', string $default = 'active') {
+        Blueprint::macro('statusColumn', function (
+            string $columnName = 'status',
+            array $allowed = ['active', 'inactive', 'pending'],
+            string $default = 'active'
+        ) {
             /** @var Blueprint $this */
-            $this->enum($columnName, ['active', 'inactive', 'pending'])->default($default);
+            $this->enum($columnName, $allowed)->default($default);
             return $this;
         });
     }

@@ -32,8 +32,7 @@
     },
     "autoload": {
         "psr-4": {
-            "ErnestoCh\\UserAuditable\\": "src/",
-            "ErnestoCh\\UserAuditable\\Tests\\": "tests/"
+            "ErnestoCh\\UserAuditable\\": "src/"
         }
     },
     "autoload-dev": {
@@ -50,7 +49,7 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "version": "1.0.3",
+    "version": "1.0.1",
     "scripts": {
         "release:patch": "php tagger.php",
         "release:minor": "echo 'Update version in composer.json then run release:patch'",

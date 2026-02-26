@@ -138,27 +138,52 @@ $posts = Post::deletedBy(3)->get();
 
 ## Testing
 
-To successfully run the tests using MySQL driver, you must set the ``DB_CONNECTION`, `DB_DATABASE` (It MUST be declared as shown below) and `TEST_DB_PASSWORD` environment variables from a terminal as follows:
+### Configuration
+
+A `.env.testing.example` file is included in the repository as a reference. Copy it and fill in your local values:
 
 ```bash
+# Linux / macOS
+cp .env.testing.example .env.testing
+
+# Windows
+copy .env.testing.example .env.testing
+```
+
+> ⚠️ **Never commit `.env.testing` to the repository.** It is already listed in `.gitignore`.
+
+### Running with MySQL
+
+Set the following environment variables and fill in your values in the `.env.testing` file:
+
+```env
+TEST_DB_HOST=127.0.0.1
+TEST_DB_PORT=3306
+TEST_DB_DATABASE=test_database
+TEST_DB_USERNAME=root
+TEST_DB_PASSWORD=your-local-mysql-password-here
+```
+
+Then set `DB_CONNECTION` in your terminal session:
+
+```bash
+# Linux / macOS
+export DB_CONNECTION=mysql
+
+# Windows
 set DB_CONNECTION=mysql
-set DB_DATABASE=
-set TEST_DB_PASSWORD=Your-local-MySQL-password
 ```
 
-For SQLite driver, `TEST_DB_PASSWORD` is not required. Set same environment variables `DB_CONNECTION` and `DB_DATABASE` from a terminal as follows:
+### Running with SQLite (default)
+
+No additional configuration is needed. SQLite in-memory is the default driver used by `phpunit.xml`.
 
 ```bash
-set DB_CONNECTION=sqlite
-set DB_DATABASE=:mmory:
-```
+# Linux / macOS
+./vendor/bin/phpunit
 
-Only then will the tests be able to run.
-
-```bash
-./vendor/bin/phpunit        // In Linux or macOS
-
-vendor\bin\phpunit          // In Windows
+# Windows
+vendor\bin\phpunit
 ```
 
 ## Changelog

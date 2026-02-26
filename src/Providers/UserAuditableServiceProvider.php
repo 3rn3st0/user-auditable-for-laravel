@@ -56,10 +56,13 @@ class UserAuditableServiceProvider extends ServiceProvider
     protected function userAuditable(): void
     {
         Blueprint::macro('userAuditable', function (
-            string $userTable = 'users',
-            string $keyType = 'id'
+            ?string $userTable = null,
+            ?string $keyType = null
         ) {
             /** @var Blueprint $this */
+
+            $userTable = $userTable ?? config('user-auditable.defaults.user_table', 'users');
+            $keyType   = $keyType   ?? config('user-auditable.defaults.key_type', 'id');
 
             $validKeyTypes = ['id', 'uuid', 'ulid'];
             if (!in_array($keyType, $validKeyTypes)) {
@@ -142,7 +145,7 @@ class UserAuditableServiceProvider extends ServiceProvider
 
     protected function uuidColumn(): void
     {
-        Blueprint::macro('uuidColumn', function ($columnName = 'uuid') {
+        Blueprint::macro('uuidColumn', function (string $columnName = 'uuid') {
             /** @var Blueprint $this */
             $this->uuid($columnName)->unique()->index();
             return $this;
@@ -151,7 +154,7 @@ class UserAuditableServiceProvider extends ServiceProvider
 
     protected function ulidColumn(): void
     {
-        Blueprint::macro('ulidColumn', function ($columnName = 'ulid') {
+        Blueprint::macro('ulidColumn', function (string $columnName = 'ulid') {
             /** @var Blueprint $this */
             $this->ulid($columnName)->unique()->index();
             return $this;
@@ -160,7 +163,7 @@ class UserAuditableServiceProvider extends ServiceProvider
 
     protected function statusColumn(): void
     {
-        Blueprint::macro('statusColumn', function ($columnName = 'status', $default = 'active') {
+        Blueprint::macro('statusColumn', function (string $columnName = 'status', string $default = 'active') {
             /** @var Blueprint $this */
             $this->enum($columnName, ['active', 'inactive', 'pending'])->default($default);
             return $this;
@@ -170,10 +173,13 @@ class UserAuditableServiceProvider extends ServiceProvider
     protected function fullAuditable(): void
     {
         Blueprint::macro('fullAuditable', function (
-            string $userTable = 'users',
-            string $keyType = 'id'
+            ?string $userTable = null,
+            ?string $keyType = null
         ) {
             /** @var Blueprint $this */
+            $userTable = $userTable ?? config('user-auditable.defaults.user_table', 'users');
+            $keyType   = $keyType   ?? config('user-auditable.defaults.key_type', 'id');
+
             $this->timestamps();
             $this->softDeletes();
             $this->userAuditable($userTable, $keyType);

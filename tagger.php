@@ -30,19 +30,35 @@ $data['version'] = $newVersion;
 file_put_contents($composer, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 echo "Successfully updated $composer to version $newVersion" . PHP_EOL;
 
-// 4. Git Operations
+// 33: Git Operations
+// Detectar rama actual
+exec('git branch --show-current', $branchOut, $branchCode);
+$branch = trim($branchOut[0] ?? 'main');
+
 echo "Committing version update..." . PHP_EOL;
-exec("git add $composer");
-exec("git commit -m \"Release $tagName\"");
+exec("git add " . escapeshellarg($composer), $output, $resultCode);
+if ($resultCode !== 0) {
+    die("Error: git add failed." . PHP_EOL);
+}
+
+exec("git commit -m \"Release $tagName\"", $output, $resultCode);
+if ($resultCode !== 0) {
+    die("Error: git commit failed." . PHP_EOL);
+}
 
 echo "Creating tag $tagName..." . PHP_EOL;
-exec("git tag $tagName", $output, $resultCode);
+exec("git tag " . escapeshellarg($tagName), $output, $resultCode);
 
 if ($resultCode === 0) {
-    echo "Pushing commit and tag to origin..." . PHP_EOL;
-    exec("git push origin main"); // Change 'main' to your branch name if needed
-    exec("git push origin $tagName");
-    echo "Deployment of $tagName completed successfully!" . PHP_EOL;
+    echo "Pushing commit and tag to origin on branch $branch..." . PHP_EOL;
+    exec("git push origin " . escapeshellarg($branch), $output, $pushCode);
+    exec("git push origin " . escapeshellarg($tagName), $output, $tagPushCode);
+    
+    if ($pushCode === 0 && $tagPushCode === 0) {
+        echo "Deployment of $tagName completed successfully!" . PHP_EOL;
+    } else {
+        echo "Error: Git push failed." . PHP_EOL;
+    }
 } else {
     die("Error: Could not create git tag. Does it already exist?" . PHP_EOL);
 }

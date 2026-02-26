@@ -95,13 +95,18 @@ class UserAuditableServiceProvider extends ServiceProvider
                     break;
 
                 case 'ulid':
-                    $this->ulid('created_by')->nullable()->index();
-                    $this->ulid('updated_by')->nullable()->index();
-                    $this->ulid('deleted_by')->nullable()->index();
-
-                    $this->foreign('created_by')->references('id')->on($userTable)->onDelete('set null');
-                    $this->foreign('updated_by')->references('id')->on($userTable)->onDelete('set null');
-                    $this->foreign('deleted_by')->references('id')->on($userTable)->onDelete('set null');
+                    $this->foreignUlid('created_by')
+                         ->nullable()
+                         ->constrained($userTable)
+                         ->onDelete('set null');
+                    $this->foreignUlid('updated_by')
+                         ->nullable()
+                         ->constrained($userTable)
+                         ->onDelete('set null');
+                    $this->foreignUlid('deleted_by')
+                         ->nullable()
+                         ->constrained($userTable)
+                         ->onDelete('set null');
                     break;
 
                 default: // id
@@ -147,7 +152,7 @@ class UserAuditableServiceProvider extends ServiceProvider
     {
         Blueprint::macro('uuidColumn', function (string $columnName = 'uuid') {
             /** @var Blueprint $this */
-            $this->uuid($columnName)->unique()->index();
+            $this->uuid($columnName)->unique();
             return $this;
         });
     }
@@ -156,7 +161,7 @@ class UserAuditableServiceProvider extends ServiceProvider
     {
         Blueprint::macro('ulidColumn', function (string $columnName = 'ulid') {
             /** @var Blueprint $this */
-            $this->ulid($columnName)->unique()->index();
+            $this->ulid($columnName)->unique();
             return $this;
         });
     }

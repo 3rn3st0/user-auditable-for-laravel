@@ -3,32 +3,15 @@
 namespace ErnestoCh\UserAuditable\Tests\Feature;
 
 use ErnestoCh\UserAuditable\Tests\TestCase;
+use ErnestoCh\UserAuditable\Tests\TestModels\TestModelWithoutSoftDeletes;
+use ErnestoCh\UserAuditable\Tests\TestModels\TestModelWithSoftDeletes;
 use ErnestoCh\UserAuditable\Tests\TestModels\TestUser;
 use ErnestoCh\UserAuditable\Traits\UserAuditable;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
-// Test model with SoftDeletes
-class TestModelWithSoftDeletes extends Model
-{
-    use SoftDeletes, UserAuditable;
-
-    protected $table = 'test_models_with_soft_deletes';
-    protected $guarded = [];
-}
-
-// Test model without SoftDeletes
-class TestModelWithoutSoftDeletes extends Model
-{
-    use UserAuditable;
-
-    protected $table = 'test_models_without_soft_deletes';
-    protected $guarded = [];
-}
 
 class UserAuditableTraitTest extends TestCase
 {

@@ -1,8 +1,8 @@
 # User Auditable for Laravel
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
-[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-8892BF.svg)](https://php.net/)
-[![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D9.0-FF2D20.svg)](https://laravel.com)
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.3-8892BF.svg)](https://php.net/)
+[![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D11.0-FF2D20.svg)](https://laravel.com)
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/ernestoch/laravel-user-auditable.svg?style=flat-square)](https://packagist.org/packages/ernestoch/user-auditable-for-laravel)
 [![Tests](https://github.com/3rn3st0/user-auditable-for-laravel/actions/workflows/test.yml/badge.svg)](https://github.com/3rn3st0/user-auditable-for-laravel/actions/workflows/test.yml)
 [![Total Downloads](https://img.shields.io/packagist/dt/ernestoch/laravel-user-auditable.svg?style=flat-square)](https://packagist.org/packages/ernestoch/user-auditable-for-laravel)
@@ -20,8 +20,8 @@ A Laravel package that provides user auditing capabilities for your database tab
 
 ## Requirements
 
-- PHP 8.1 or higher
-- Laravel 9.0 or higher
+- PHP 8.3 or higher
+- Laravel 11.0 or higher
 
 ## Installation
 
@@ -127,18 +127,18 @@ $posts = Post::deletedBy(3)->get();
 
 ## Available Macros
 
-| Macro               | Description                                      | Parameters                                  |
-|---------------------|--------------------------------------------------|---------------------------------------------|
-| userAuditable()     | Adds user auditing columns                       | $userTable = 'users', $keyType = 'id'       |
-| dropUserAuditable() | Removes user auditing columns                    | $dropForeign = true                         |
-| fullAuditable()     | Adds timestamps, soft deletes, and user auditing | $userTable = 'users', $keyType = 'id'       |
-| uuidColumn()        | Adds UUID column                                 | $columnName = 'uuid'                        |
-| ulidColumn()        | Adds ULID column                                 | $columnName = 'ulid'                        |
-| statusColumn()      | Adds status enum column                          | $columnName = 'status', $default = 'active' |
+| Macro               | Description                                      | Parameters                                                                        |
+|---------------------|--------------------------------------------------|-----------------------------------------------------------------------------------|
+| userAuditable()     | Adds user auditing columns                       | ?string $userTable = null, ?string $keyType = null                                |
+| dropUserAuditable() | Removes user auditing columns                    | bool $dropForeign = true                                                          |
+| fullAuditable()     | Adds timestamps, soft deletes, and user auditing | ?string $userTable = null, ?string $keyType = null                                |
+| uuidColumn()        | Adds UUID column                                 | string $columnName = 'uuid'                                                       |
+| ulidColumn()        | Adds ULID column                                 | string $columnName = 'ulid'                                                       |
+| statusColumn()      | Adds status enum column                          | string $columnName = 'status', array $allowed = [...], string $default = 'active' |
 
 ## Testing
 
-### Configuration
+### Setup
 
 A `.env.testing.example` file is included in the repository as a reference. Copy it and fill in your local values:
 
@@ -196,7 +196,7 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details (⚠️ Not available yet
 
 ## Security
 
-If you discover any security related issues, please email ernestochapon@gmail.com instead of using the issue tracker.
+If you discover any security related issues, please email [ernestochapon@gmail.com](mailto:ernestochapon@gmail.com) instead of using the issue tracker.
 
 ## Credits
 

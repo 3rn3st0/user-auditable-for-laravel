@@ -48,7 +48,7 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "version": "1.0.1",
+    "version": "1.1.0",
     "scripts": {
         "release:patch": "php tagger.php",
         "release:minor": "echo 'Update version in composer.json then run release:patch'",

@@ -11,6 +11,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Test;
 
 
 class UserAuditableTraitTest extends TestCase
@@ -57,7 +58,8 @@ class UserAuditableTraitTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_automatically_sets_created_by()
+    #[Test]
+    public function test_automatically_sets_created_by(): void
     {
         $user = TestUser::create([
             'name' => 'Test User',
@@ -73,7 +75,8 @@ class UserAuditableTraitTest extends TestCase
         $this->assertNull($model->updated_by);
     }
 
-    public function test_automatically_sets_updated_by()
+    #[Test]
+    public function test_automatically_sets_updated_by(): void
     {
         $user = TestUser::create([
             'name' => 'Test User',
@@ -89,7 +92,8 @@ class UserAuditableTraitTest extends TestCase
         $this->assertEquals($user->id, $model->updated_by);
     }
 
-    public function test_relationships_exist()
+    #[Test]
+    public function test_relationships_exist(): void
     {
         $model = new TestModelWithSoftDeletes();
 
@@ -98,7 +102,8 @@ class UserAuditableTraitTest extends TestCase
         $this->assertTrue(method_exists($model, 'deleter'));
     }
 
-    public function test_works_without_soft_deletes()
+    #[Test]
+    public function test_works_without_soft_deletes(): void
     {
         $user = TestUser::create([
             'name' => 'Test User',
@@ -119,7 +124,8 @@ class UserAuditableTraitTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function test_deleted_by_is_set_on_soft_delete()
+    #[Test]
+    public function test_deleted_by_is_set_on_soft_delete(): void
     {
         $user = TestUser::create([
             'name' => 'Test User',

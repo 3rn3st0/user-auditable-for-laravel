@@ -3,11 +3,12 @@
 namespace ErnestoCh\UserAuditable\Tests\Unit;
 
 use ErnestoCh\UserAuditable\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ServiceProviderTest extends TestCase
 {
-    /** @test */
-    public function it_registers_the_service_provider()
+    #[Test]
+    public function it_registers_the_service_provider(): void
     {
         $providers = $this->app->getLoadedProviders();
 
@@ -17,8 +18,8 @@ class ServiceProviderTest extends TestCase
         );
     }
 
-    /** @test */
-    public function it_registers_schema_macros()
+    #[Test]
+    public function it_registers_schema_macros(): void
     {
         $this->assertTrue(
             \Illuminate\Database\Schema\Blueprint::hasMacro('userAuditable')
@@ -29,8 +30,8 @@ class ServiceProviderTest extends TestCase
         );
     }
 
-    /** @test */
-    public function it_provides_config_file()
+    #[Test]
+    public function it_provides_config_file(): void
     {
         $config = config('user-auditable');
 

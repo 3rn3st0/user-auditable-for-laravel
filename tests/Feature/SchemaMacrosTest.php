@@ -5,6 +5,7 @@ namespace ErnestoCh\UserAuditable\Tests\Feature;
 use ErnestoCh\UserAuditable\Tests\TestCase;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Test;
 
 class SchemaMacrosTest extends TestCase
 {
@@ -37,7 +38,8 @@ class SchemaMacrosTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_user_auditable_macro_creates_columns()
+    #[Test]
+    public function test_user_auditable_macro_creates_columns(): void
     {
         Schema::create('test_table_1', function (Blueprint $table) {
             $table->id();
@@ -49,7 +51,8 @@ class SchemaMacrosTest extends TestCase
         ]));
     }
 
-    public function test_full_auditable_macro_creates_all_columns()
+    #[Test]
+    public function test_full_auditable_macro_creates_all_columns(): void
     {
         Schema::create('test_table_2', function (Blueprint $table) {
             $table->id();
@@ -62,7 +65,8 @@ class SchemaMacrosTest extends TestCase
         ]));
     }
 
-    public function test_user_auditable_with_uuid()
+    #[Test]
+    public function test_user_auditable_with_uuid(): void
     {
         // Create a dedicated users table with UUID primary key for this test
         Schema::create('users_uuid', function (Blueprint $table) {
@@ -87,7 +91,8 @@ class SchemaMacrosTest extends TestCase
         $this->assertEquals($expectedType, $columnType);
     }
 
-    public function test_drop_user_auditable_macro()
+    #[Test]
+    public function test_drop_user_auditable_macro(): void
     {
         // Skip this test for SQLite due to database limitations
         if (config('database.default') === 'sqlite') {

@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
 
-
 class UserAuditableTraitTest extends TestCase
 {
     protected function setUp(): void
@@ -140,5 +139,143 @@ class UserAuditableTraitTest extends TestCase
 
         $this->assertEquals($user->id, $model->deleted_by);
         $this->assertNotNull($model->deleted_at);
+    }
+
+    #[Test]
+    public function test_restoring_clears_deleted_by(): void
+    {
+        $user = TestUser::create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        Auth::login($user);
+
+        $model = TestModelWithSoftDeletes::create(['name' => 'Test Model']);
+        $model->delete();
+
+        $this->assertEquals($user->id, $model->deleted_by);
+
+        $model->restore();
+
+        $this->assertNull($model->fresh()->deleted_by);
+        $this->assertNull($model->fresh()->deleted_at);
+    }
+
+    #[Test]
+    public function test_scope_created_by_filters_records(): void
+    {
+        $user1 = TestUser::create([
+            'name' => 'User One',
+            'email' => 'user1@example.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        $user2 = TestUser::create([
+            'name' => 'User Two',
+            'email' => 'user2@example.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        Auth::login($user1);
+        TestModelWithSoftDeletes::create(['name' => 'Model by User 1']);
+
+        Auth::login($user2);
+        TestModelWithSoftDeletes::create(['name' => 'Model by User 2']);
+
+        $results = TestModelWithSoftDeletes::createdBy($user1->id)->get();
+
+        $this->assertCount(1, $results);
+        $this->assertEquals('Model by User 1', $results->first()->name);
+    }
+
+    #[Test]
+    public function test_scope_updated_by_filters_records(): void
+    {
+        $user1 = TestUser::create([
+            'name' => 'User One',
+            'email' => 'user1@example.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        $user2 = TestUser::create([
+            'name' => 'User Two',
+            'email' => 'user2@example.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        Auth::login($user1);
+        $model = TestModelWithSoftDeletes::create(['name' => 'Original Model']);
+
+        Auth::login($user2);
+        $model->update(['name' => 'Updated Model']);
+
+        $results = TestModelWithSoftDeletes::updatedBy($user2->id)->get();
+
+        $this->assertCount(1, $results);
+        $this->assertEquals('Updated Model', $results->first()->name);
+    }
+
+    #[Test]
+    public function test_scope_deleted_by_filters_records(): void
+    {
+        $user = TestUser::create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        Auth::login($user);
+
+        $model = TestModelWithSoftDeletes::create(['name' => 'To Be Deleted']);
+        TestModelWithSoftDeletes::create(['name' => 'Not Deleted']);
+
+        $model->delete();
+
+        $results = TestModelWithSoftDeletes::withTrashed()->deletedBy($user->id)->get();
+
+        $this->assertCount(1, $results);
+        $this->assertEquals('To Be Deleted', $results->first()->name);
+    }
+
+    #[Test]
+    public function test_relationships_return_correct_user_instances(): void
+    {
+        $user = TestUser::create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        Auth::login($user);
+
+        $model = TestModelWithSoftDeletes::create(['name' => 'Test Model']);
+        $this->assertEquals($user->id, $model->creator->id);
+
+        $model->update(['name' => 'Updated Model']);
+        $this->assertEquals($user->id, $model->fresh()->updater->id);
+
+        $model->delete();
+        $this->assertEquals($user->id, $model->deleter->id);
+    }
+
+    #[Test]
+    public function test_force_delete_does_not_set_deleted_by(): void
+    {
+        $user = TestUser::create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        Auth::login($user);
+
+        $model = TestModelWithSoftDeletes::create(['name' => 'To Force Delete']);
+        $modelId = $model->id;
+
+        $model->forceDelete();
+
+        $this->assertNull(TestModelWithSoftDeletes::withTrashed()->find($modelId));
     }
 }

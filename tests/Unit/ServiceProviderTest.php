@@ -2,8 +2,11 @@
 
 namespace ErnestoCh\UserAuditable\Tests\Unit;
 
+use ErnestoCh\UserAuditable\Providers\UserAuditableServiceProvider;
 use ErnestoCh\UserAuditable\Tests\TestCase;
+use Illuminate\Database\Schema\Blueprint;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 
 class ServiceProviderTest extends TestCase
 {
@@ -19,15 +22,23 @@ class ServiceProviderTest extends TestCase
     }
 
     #[Test]
-    public function it_registers_schema_macros(): void
+    public function it_registers_all_schema_macros(): void
     {
-        $this->assertTrue(
-            \Illuminate\Database\Schema\Blueprint::hasMacro('userAuditable')
-        );
+        $macros = [
+            'userAuditable',
+            'dropUserAuditable',
+            'uuidColumn',
+            'ulidColumn',
+            'statusColumn',
+            'fullAuditable',
+        ];
 
-        $this->assertTrue(
-            \Illuminate\Database\Schema\Blueprint::hasMacro('fullAuditable')
-        );
+        foreach ($macros as $macro) {
+            $this->assertTrue(
+                Blueprint::hasMacro($macro),
+                "Macro [{$macro}] is not registered."
+            );
+        }
     }
 
     #[Test]
@@ -37,5 +48,17 @@ class ServiceProviderTest extends TestCase
 
         $this->assertIsArray($config);
         $this->assertArrayHasKey('enabled_macros', $config);
+    }
+
+    #[Test]
+    public function it_throws_when_full_auditable_enabled_without_user_auditable(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('The [full_auditable] macro requires [user_auditable]');
+
+        config(['user-auditable.enabled_macros' => ['full_auditable']]);
+
+        $provider = new UserAuditableServiceProvider($this->app);
+        $provider->boot();
     }
 }

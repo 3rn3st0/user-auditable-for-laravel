@@ -6,6 +6,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use RuntimeException;
 
 class UserAuditableServiceProvider extends ServiceProvider
 {
@@ -181,6 +182,12 @@ class UserAuditableServiceProvider extends ServiceProvider
 
     protected function fullAuditable(): void
     {
+        if (!\in_array('user_auditable', config('user-auditable.enabled_macros', []))) {
+            throw new RuntimeException(
+                'The [full_auditable] macro requires [user_auditable] to be enabled in config/user-auditable.php.'
+            );
+        }
+
         Blueprint::macro('fullAuditable', function (
             ?string $userTable = null,
             ?string $keyType = null

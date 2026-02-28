@@ -98,14 +98,17 @@ class UserAuditableServiceProvider extends ServiceProvider
                 case 'ulid':
                     $this->foreignUlid('created_by')
                          ->nullable()
+                         ->index()
                          ->constrained($userTable)
                          ->onDelete('set null');
                     $this->foreignUlid('updated_by')
                          ->nullable()
+                         ->index()
                          ->constrained($userTable)
                          ->onDelete('set null');
                     $this->foreignUlid('deleted_by')
                          ->nullable()
+                         ->index()
                          ->constrained($userTable)
                          ->onDelete('set null');
                     break;

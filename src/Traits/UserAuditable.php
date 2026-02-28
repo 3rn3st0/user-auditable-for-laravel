@@ -37,6 +37,7 @@ trait UserAuditable
             if (
                 Auth::check()
                 && in_array(SoftDeletes::class, class_uses_recursive($model))
+                && !$model->isForceDeleting()
                 && static::hasAuditableColumn($model, 'deleted_by')
             ) {
                 // Direct DB update to avoid triggering Eloquent updating event

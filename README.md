@@ -23,6 +23,11 @@ A Laravel package that provides user auditing capabilities for your database tab
 - PHP 8.1 or higher
 - Laravel 9.0 or higher
 
+> **Laravel 9 notice:** Laravel 9 reached End of Life in February 2024 and carries
+> known security advisories. This package declares compatibility with Laravel 9 but
+> CI tests for that version may fail due to Composer blocking EOL packages.
+> Use Laravel 9 at your own risk.
+
 ## Installation
 
 ```bash

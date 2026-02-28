@@ -6,6 +6,7 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.laravel == '9.*' }}
     strategy:
       matrix:
         php: ['8.1', '8.2', '8.3', '8.4']

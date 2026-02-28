@@ -4,6 +4,14 @@ All notable changes to `laravel-user-auditable` will be documented in this file.
 
 <!-- markdownlint-disable MD024 -->
 
+## [1.2.1] - 2026-02-28
+
+### Changed
+
+- CI jobs for Laravel `9.*` are now marked `continue-on-error: true` due to
+  Packagist security advisories blocking all Laravel 9.x versions (EOL Feb 2024).
+- Added Laravel 9 EOL notice to README.
+
 ## [1.2.0] - 2026-02-28
 
 ### Added

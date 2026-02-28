@@ -8,14 +8,6 @@ use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // Configure authentication guard
-        config(['auth.providers.users.model' => TestUser::class]);
-    }
-
     protected function getPackageProviders($app)
     {
         return [

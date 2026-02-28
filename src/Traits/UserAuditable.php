@@ -105,7 +105,7 @@ trait UserAuditable
     /**
      * Scope a query to only include records created by a specific user
      */
-    public function scopeCreatedBy(Builder $query, $userId): Builder
+    public function scopeCreatedBy(Builder $query, int|string $userId): Builder
     {
         return $query->where('created_by', $userId);
     }
@@ -113,7 +113,7 @@ trait UserAuditable
     /**
      * Scope a query to only include records updated by a specific user
      */
-    public function scopeUpdatedBy(Builder $query, $userId): Builder
+    public function scopeUpdatedBy(Builder $query, int|string $userId): Builder
     {
         return $query->where('updated_by', $userId);
     }
@@ -121,7 +121,7 @@ trait UserAuditable
     /**
      * Scope a query to only include records deleted by a specific user
      */
-    public function scopeDeletedBy(Builder $query, $userId): Builder
+    public function scopeDeletedBy(Builder $query, int|string $userId): Builder
     {
         return $query->where('deleted_by', $userId);
     }

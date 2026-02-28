@@ -48,12 +48,11 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "version": "1.1.2",
     "scripts": {
         "release:patch": "php tagger.php",
         "release:minor": "echo 'Update version in composer.json then run release:patch'",
-        "test": "vendor\\bin\\phpunit",
-        "test-coverage": "vendor\\bin\\phpunit --coverage-html coverage",
-        "test-verbose": "vendor\\bin\\phpunit --verbose"
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage",
+        "test-verbose": "vendor/bin/phpunit --verbose"
     }
 }

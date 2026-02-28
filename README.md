@@ -37,6 +37,9 @@ Publish the configuration file (optional):
 php artisan vendor:publish --tag=user-auditable-config
 ```
 
+> **Note:** `fullAuditable()` requires `user_auditable` to also be listed in `enabled_macros`.
+> If you disable `user_auditable` in the published config, registering `full_auditable` will throw a `RuntimeException` at boot time.
+
 ## Usage
 
 ### Migrations
@@ -48,7 +51,7 @@ Use the provided macros in your migrations:
 Schema::create('posts', function (Blueprint $table) {
     $table->id();
     $table->string('title');
-    $table->fullAuditable(); // Uses 'users' table and 'id' key type
+    $table->fullAuditable(); // Adds timestamps, soft deletes, and user auditing
 });
 
 // Custom user table and UUID key type
@@ -58,11 +61,16 @@ Schema::create('products', function (Blueprint $table) {
     $table->fullAuditable('admins', 'uuid');
 });
 
-// Only user auditing columns
+// Only user auditing columns (no timestamps or soft deletes)
 Schema::create('settings', function (Blueprint $table) {
     $table->string('key')->primary();
     $table->text('value');
     $table->userAuditable('users', 'ulid');
+});
+
+// Reversing user auditing columns in a down() migration
+Schema::table('posts', function (Blueprint $table) {
+    $table->dropUserAuditable(); // Drops foreign keys and audit columns
 });
 ```
 
@@ -127,14 +135,14 @@ $posts = Post::deletedBy(3)->get();
 
 ## Available Macros
 
-| Macro               | Description                                      | Parameters                                                                        |
-|---------------------|--------------------------------------------------|-----------------------------------------------------------------------------------|
-| userAuditable()     | Adds user auditing columns                       | ?string $userTable = null, ?string $keyType = null                                |
-| dropUserAuditable() | Removes user auditing columns                    | bool $dropForeign = true                                                          |
-| fullAuditable()     | Adds timestamps, soft deletes, and user auditing | ?string $userTable = null, ?string $keyType = null                                |
-| uuidColumn()        | Adds UUID column                                 | string $columnName = 'uuid'                                                       |
-| ulidColumn()        | Adds ULID column                                 | string $columnName = 'ulid'                                                       |
-| statusColumn()      | Adds status enum column                          | string $columnName = 'status', array $allowed = [...], string $default = 'active' |
+| Macro | Description | Parameters |
+| --- | --- | --- |
+| userAuditable() | Adds user auditing columns | ?string $userTable = null, ?string $keyType = null |
+| dropUserAuditable() | Removes user auditing columns | bool $dropForeign = true |
+| fullAuditable() | Adds timestamps, soft deletes, and user auditing | ?string $userTable = null, ?string $keyType = null |
+| uuidColumn() | Adds UUID column | string $columnName = 'uuid' |
+| ulidColumn() | Adds ULID column | string $columnName = 'ulid' |
+| statusColumn() | Adds status enum column | string $columnName = 'status', array $allowed = ['active','inactive','pending'], string $default = 'active' |
 
 ## Testing
 
@@ -192,7 +200,7 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details (⚠️ Not available yet).
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 ## Security
 

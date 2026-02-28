@@ -31,6 +31,8 @@ class ServiceProviderTest extends TestCase
             'ulidColumn',
             'statusColumn',
             'fullAuditable',
+            'eventAuditable',
+            'dropEventAuditable',
         ];
 
         foreach ($macros as $macro) {

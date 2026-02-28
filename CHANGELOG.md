@@ -4,6 +4,17 @@ All notable changes to `laravel-user-auditable` will be documented in this file.
 
 <!-- markdownlint-disable MD024 -->
 
+## [1.3.0] - 2026-02-28
+
+### Added
+
+- `eventAuditable(string $event, ?string $column = null)` macro: creates `{event}_at`
+  (timestamp) and/or `{event}_by` (FK to users) for any custom audit event.
+- `dropEventAuditable(string $event, ?string $column = null, bool $dropForeign = true)`
+  macro: reverses `eventAuditable` in `down()` migrations.
+- Tests for both new macros (column creation, individual specifiers, validation exceptions,
+  and drop on non-SQLite).
+
 ## [1.2.1] - 2026-02-28
 
 ### Changed

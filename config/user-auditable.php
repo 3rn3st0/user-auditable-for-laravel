@@ -17,6 +17,8 @@ return [
         'ulid_column',
         'status_column',
         'full_auditable',
+        'event_auditable',
+        'drop_event_auditable',
     ],
 
     /*

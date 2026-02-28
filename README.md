@@ -79,6 +79,33 @@ Schema::table('posts', function (Blueprint $table) {
 });
 ```
 
+#### Custom Event Columns
+
+Use `eventAuditable()` to stamp any custom business event with its own `_at` timestamp
+and/or `_by` user FK, reading `user_table` and `key_type` from `config('user-auditable.defaults')`:
+
+```php
+// Both columns: released_at (timestamp) + released_by (FK to users)
+Schema::table('products', function (Blueprint $table) {
+    $table->eventAuditable('released');
+});
+
+// Timestamp only: approved_at
+Schema::table('orders', function (Blueprint $table) {
+    $table->eventAuditable('approved', 'at');
+});
+
+// FK only: archived_by
+Schema::table('posts', function (Blueprint $table) {
+    $table->eventAuditable('archived', 'by');
+});
+
+// Reversing in a down() migration
+Schema::table('products', function (Blueprint $table) {
+    $table->dropEventAuditable('released'); // Drops FK + both columns
+});
+```
+
 ### Models
 
 Use the `UserAuditable` trait in your Eloquent models:
@@ -148,6 +175,8 @@ $posts = Post::deletedBy(3)->get();
 | uuidColumn() | Adds UUID column | string $columnName = 'uuid' |
 | ulidColumn() | Adds ULID column | string $columnName = 'ulid' |
 | statusColumn() | Adds status enum column | string $columnName = 'status', array $allowed = ['active','inactive','pending'], string $default = 'active' |
+| eventAuditable() | Adds a custom event timestamp and/or user FK | string $event, ?string $column = null |
+| dropEventAuditable() | Removes custom event columns | string $event, ?string $column = null, bool $dropForeign = true |
 
 ## Testing
 

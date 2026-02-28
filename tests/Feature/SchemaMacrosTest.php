@@ -32,6 +32,10 @@ class SchemaMacrosTest extends TestCase
         Schema::dropIfExists('test_table_2');
         Schema::dropIfExists('test_table_3');
         Schema::dropIfExists('test_table_4');
+        Schema::dropIfExists('test_table_5');
+        Schema::dropIfExists('test_table_6');
+        Schema::dropIfExists('test_table_7');
+        Schema::dropIfExists('test_table_8');
         Schema::dropIfExists('users_uuid');
         Schema::dropIfExists('users');
 
@@ -112,5 +116,87 @@ class SchemaMacrosTest extends TestCase
         $this->assertFalse(Schema::hasColumns('test_table_4', [
             'created_by', 'updated_by', 'deleted_by'
         ]));
+    }
+
+    #[Test]
+    public function test_event_auditable_creates_both_columns(): void
+    {
+        Schema::create('test_table_5', function (Blueprint $table) {
+            $table->id();
+            $table->eventAuditable('released');
+        });
+
+        $this->assertTrue(Schema::hasColumn('test_table_5', 'released_at'));
+        $this->assertTrue(Schema::hasColumn('test_table_5', 'released_by'));
+    }
+
+    #[Test]
+    public function test_event_auditable_creates_only_at_column(): void
+    {
+        Schema::create('test_table_6', function (Blueprint $table) {
+            $table->id();
+            $table->eventAuditable('released', 'at');
+        });
+
+        $this->assertTrue(Schema::hasColumn('test_table_6', 'released_at'));
+        $this->assertFalse(Schema::hasColumn('test_table_6', 'released_by'));
+    }
+
+    #[Test]
+    public function test_event_auditable_creates_only_by_column(): void
+    {
+        Schema::create('test_table_7', function (Blueprint $table) {
+            $table->id();
+            $table->eventAuditable('released', 'by');
+        });
+
+        $this->assertTrue(Schema::hasColumn('test_table_7', 'released_by'));
+        $this->assertFalse(Schema::hasColumn('test_table_7', 'released_at'));
+    }
+
+    #[Test]
+    public function test_event_auditable_throws_on_empty_event(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Event name cannot be empty.');
+
+        Schema::create('test_table_5', function (Blueprint $table) {
+            $table->id();
+            $table->eventAuditable('');
+        });
+    }
+
+    #[Test]
+    public function test_event_auditable_throws_on_invalid_specifier(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid column specifier [both]. Must be 'at', 'by', or null.");
+
+        Schema::create('test_table_5', function (Blueprint $table) {
+            $table->id();
+            $table->eventAuditable('released', 'both');
+        });
+    }
+
+    #[Test]
+    public function test_drop_event_auditable_macro(): void
+    {
+        // Skip this test for SQLite due to database limitations
+        if (config('database.default') === 'sqlite') {
+            $this->markTestSkipped('SQLite does not support dropping foreign keys and columns reliably.');
+            return;
+        }
+
+        Schema::create('test_table_8', function (Blueprint $table) {
+            $table->id();
+            $table->eventAuditable('released');
+        });
+
+        Schema::table('test_table_8', function (Blueprint $table) {
+            $table->dropEventAuditable('released');
+        });
+
+        $this->assertFalse(Schema::hasColumn('test_table_8', 'released_at'));
+        $this->assertFalse(Schema::hasColumn('test_table_8', 'released_by'));
     }
 }

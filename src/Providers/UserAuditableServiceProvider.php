@@ -205,4 +205,78 @@ class UserAuditableServiceProvider extends ServiceProvider
             return $this;
         });
     }
+
+    protected function eventAuditable(): void
+    {
+        Blueprint::macro('eventAuditable', function (string $event, ?string $column = null) {
+            /** @var Blueprint $this */
+            if (empty($event)) {
+                throw new InvalidArgumentException('Event name cannot be empty.');
+            }
+            if ($column !== null && !\in_array($column, ['at', 'by'])) {
+                throw new InvalidArgumentException(
+                    "Invalid column specifier [{$column}]. Must be 'at', 'by', or null."
+                );
+            }
+
+            if ($column === null || $column === 'at') {
+                $this->timestamp("{$event}_at")->nullable();
+            }
+
+            if ($column === null || $column === 'by') {
+                $userTable = config('user-auditable.defaults.user_table', 'users');
+                $keyType   = config('user-auditable.defaults.key_type', 'id');
+
+                switch ($keyType) {
+                    case 'uuid':
+                        $this->foreignUuid("{$event}_by")->nullable()->index()
+                             ->constrained($userTable)->onDelete('set null');
+                        break;
+                    case 'ulid':
+                        $this->foreignUlid("{$event}_by")->nullable()->index()
+                             ->constrained($userTable)->onDelete('set null');
+                        break;
+                    default:
+                        $this->foreignId("{$event}_by")->nullable()->index()
+                             ->constrained($userTable)->onDelete('set null');
+                }
+            }
+
+            return $this;
+        });
+    }
+
+    protected function dropEventAuditable(): void
+    {
+        Blueprint::macro('dropEventAuditable', function (
+            string $event,
+            ?string $column = null,
+            bool $dropForeign = true
+        ) {
+            /** @var Blueprint $this */
+            if (empty($event)) {
+                throw new InvalidArgumentException('Event name cannot be empty.');
+            }
+            if ($column !== null && !\in_array($column, ['at', 'by'])) {
+                throw new InvalidArgumentException(
+                    "Invalid column specifier [{$column}]. Must be 'at', 'by', or null."
+                );
+            }
+
+            if (($column === null || $column === 'by') && $dropForeign) {
+                $this->dropForeign(["{$event}_by"]);
+            }
+
+            $cols = [];
+            if ($column === null || $column === 'at') {
+                $cols[] = "{$event}_at";
+            }
+            if ($column === null || $column === 'by') {
+                $cols[] = "{$event}_by";
+            }
+            $this->dropColumn($cols);
+
+            return $this;
+        });
+    }
 }

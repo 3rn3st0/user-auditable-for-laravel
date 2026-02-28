@@ -14,7 +14,7 @@ trait UserAuditable
     /**
      * Cache for database column existence checks
      */
-    protected static array $auditableColumnCache = [];
+    protected array $auditableColumnCache = [];
 
     /**
      * Boot the UserAuditable trait
@@ -67,11 +67,11 @@ trait UserAuditable
         $table = $model->getTable();
         $key = "{$table}.{$column}";
 
-        if (!isset(static::$auditableColumnCache[$key])) {
-            static::$auditableColumnCache[$key] = Schema::hasColumn($table, $column);
+        if (!isset($model->auditableColumnCache[$key])) {
+            $model->auditableColumnCache[$key] = Schema::hasColumn($table, $column);
         }
 
-        return static::$auditableColumnCache[$key];
+        return $model->auditableColumnCache[$key];
     }
 
     /**

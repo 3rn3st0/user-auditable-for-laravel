@@ -107,6 +107,49 @@ Schema::table('products', function (Blueprint $table) {
 });
 ```
 
+#### Reversing Migrations
+
+All creation macros have corresponding drop macros for clean rollbacks:
+
+```php
+// Reverse fullAuditable()
+Schema::table('posts', function (Blueprint $table) {
+    $table->dropFullAuditable(); // Drops timestamps, soft deletes, and audit columns
+});
+
+// Reverse userAuditable()
+Schema::table('settings', function (Blueprint $table) {
+    $table->dropUserAuditable(); // Drops audit columns only
+});
+
+// Reverse uuidColumn()
+Schema::table('products', function (Blueprint $table) {
+    $table->dropUuidColumn();
+    // or with custom column name:
+    // $table->dropUuidColumn('product_uuid');
+});
+
+// Reverse ulidColumn()
+Schema::table('orders', function (Blueprint $table) {
+    $table->dropUlidColumn();
+    // or with custom column name:
+    // $table->dropUlidColumn('order_ulid');
+});
+
+// Reverse statusColumn()
+Schema::table('users', function (Blueprint $table) {
+    $table->dropStatusColumn();
+    // or with custom column name:
+    // $table->dropStatusColumn('user_status');
+});
+
+// Reverse eventAuditable()
+Schema::table('products', function (Blueprint $table) {
+    $table->dropEventAuditable('released');     // Both columns
+    $table->dropEventAuditable('approved', 'by'); // Only approved_by
+});
+```
+
 ### Models
 
 Use the `UserAuditable` trait in your Eloquent models:

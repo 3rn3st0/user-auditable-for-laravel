@@ -279,4 +279,15 @@ class UserAuditableServiceProvider extends ServiceProvider
             return $this;
         });
     }
+
+    protected function dropFullAuditable(): void
+    {
+        Blueprint::macro('dropFullAuditable', function (bool $dropForeign = true) {
+            /** @var Blueprint $this */
+            $this->dropTimestamps();
+            $this->dropSoftDeletes();
+            $this->dropUserAuditable($dropForeign);
+            return $this;
+        });
+    }
 }

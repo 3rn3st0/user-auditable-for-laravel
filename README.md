@@ -74,10 +74,6 @@ Schema::create('settings', function (Blueprint $table) {
     $table->userAuditable('users', 'ulid');
 });
 
-// Reversing user auditing columns in a down() migration
-Schema::table('posts', function (Blueprint $table) {
-    $table->dropUserAuditable(); // Drops foreign keys and audit columns
-});
 ```
 
 #### Custom Event Columns
@@ -99,11 +95,6 @@ Schema::table('orders', function (Blueprint $table) {
 // FK only: archived_by
 Schema::table('posts', function (Blueprint $table) {
     $table->eventAuditable('archived', 'by');
-});
-
-// Reversing in a down() migration
-Schema::table('products', function (Blueprint $table) {
-    $table->dropEventAuditable('released'); // Drops FK + both columns
 });
 ```
 
@@ -146,7 +137,8 @@ Schema::table('users', function (Blueprint $table) {
 // Reverse eventAuditable()
 Schema::table('products', function (Blueprint $table) {
     $table->dropEventAuditable('released');     // Both columns
-    $table->dropEventAuditable('approved', 'by'); // Only approved_by
+    $table->dropEventAuditable('released', 'by'); // Only released_by
+    $table->dropEventAuditable('released', 'at'); // Only approved_at
 });
 ```
 
@@ -224,6 +216,13 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use EventAuditable;
+    
+    protected $fillable = [
+        'title',
+        'content',
+        'released_by',
+        'released_at'
+    ];
 }
 ```
 
@@ -238,8 +237,9 @@ $releasedBy = $product->releasedBy(); // BelongsTo User
 // Get when it was released
 $releasedAt = $product->releasedAt(); // Carbon timestamp
 
-// Filter products by event user
-$released = Product::eventBy('released', $userId)->get();
+// Filter products by event user (query scopes)
+$released = Product::releasedBy($userId)->get();
+$approved = Product::approvedBy($userId)->get();
 ```
 
 ## Available Macros

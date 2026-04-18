@@ -16,6 +16,7 @@ A Laravel package that provides user auditing capabilities for your database tab
 - 🎯 **Multiple Key Types**: Support for ID, UUID, and ULID
 - 🏷️ **Relationships**: Built-in relationships to user models
 - 📊 **Query Scopes**: Easy filtering by user actions
+- 🎭 **Custom Events**: Track any business event with dynamic `EventAuditable` trait
 - ⚡ **Zero Configuration**: Works out of the box
 
 ## Requirements
@@ -165,6 +166,39 @@ $posts = Post::updatedBy(2)->get();
 $posts = Post::deletedBy(3)->get();
 ```
 
+### Custom Event Tracking
+
+Use the `EventAuditable` trait in your models to dynamically access custom events defined via the `eventAuditable()` macro:
+
+```php
+<?php
+
+namespace App\Models;
+
+use ErnestoCh\UserAuditable\Traits\EventAuditable;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    use EventAuditable;
+}
+```
+
+Then access event relationships and timestamps dynamically:
+
+```php
+$product = Product::first();
+
+// Get user who released the product
+$releasedBy = $product->releasedBy(); // BelongsTo User
+
+// Get when it was released
+$releasedAt = $product->releasedAt(); // Carbon timestamp
+
+// Filter products by event user
+$released = Product::eventBy('released', $userId)->get();
+```
+
 ## Available Macros
 
 | Macro | Description | Parameters |
@@ -172,9 +206,13 @@ $posts = Post::deletedBy(3)->get();
 | userAuditable() | Adds user auditing columns | ?string $userTable = null, ?string $keyType = null |
 | dropUserAuditable() | Removes user auditing columns | bool $dropForeign = true |
 | fullAuditable() | Adds timestamps, soft deletes, and user auditing | ?string $userTable = null, ?string $keyType = null |
+| dropFullAuditable() | Removes timestamps, soft deletes, and user auditing | bool $dropForeign = true |
 | uuidColumn() | Adds UUID column | string $columnName = 'uuid' |
+| dropUuidColumn() | Removes UUID column | string $columnName = 'uuid' |
 | ulidColumn() | Adds ULID column | string $columnName = 'ulid' |
+| dropUlidColumn() | Removes ULID column | string $columnName = 'ulid' |
 | statusColumn() | Adds status enum column | string $columnName = 'status', array $allowed = ['active','inactive','pending'], string $default = 'active' |
+| dropStatusColumn() | Removes status column | string $columnName = 'status' |
 | eventAuditable() | Adds a custom event timestamp and/or user FK | string $event, ?string $column = null |
 | dropEventAuditable() | Removes custom event columns | string $event, ?string $column = null, bool $dropForeign = true |
 

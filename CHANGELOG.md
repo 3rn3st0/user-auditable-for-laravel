@@ -4,6 +4,33 @@ All notable changes to `laravel-user-auditable` will be documented in this file.
 
 <!-- markdownlint-disable MD024 -->
 
+## [Unreleased]
+
+### Added
+
+- `dropFullAuditable(bool $dropForeign = true)` macro: reverses `fullAuditable()` in `down()` migrations.
+- `dropUuidColumn(string $columnName = 'uuid')` macro: removes UUID columns created with `uuidColumn()`.
+- `dropUlidColumn(string $columnName = 'ulid')` macro: removes ULID columns created with `ulidColumn()`.
+- `dropStatusColumn(string $columnName = 'status')` macro: removes status enum columns created with `statusColumn()`.
+- `EventAuditable` trait: provides dynamic access to custom event relationships and query scopes:
+  - Instance methods: `$model->releasedBy()`, `$model->approvedAt()` (dynamically handle any `{event}_by` or `{event}_at` columns)
+  - Static scopes: `Model::releasedBy($userId)->get()` (dynamically filter by any event user)
+  - Automatic column detection with caching for performance
+- Comprehensive test suite for `EventAuditable` trait (12 tests)
+- Comprehensive test suite for all drop macros (11 tests)
+- Test fixture `TestModelWithEventAuditable` for event auditable testing
+
+### Changed
+
+- Configuration file (`config/user-auditable.php`): added new drop macros to `enabled_macros` list
+- Documentation (README.md):
+  - Added `EventAuditable` to features list
+  - Added new "Reversing Migrations" section with examples for all drop macros
+  - Reorganized Models section to include `EventAuditable` trait example
+  - Reorganized Relationships section with subsections for `UserAuditable` and `EventAuditable`
+  - Reorganized Query Scopes section with subsections for `UserAuditable` and `EventAuditable`
+  - Updated Available Macros table with all new drop macros
+
 ## [1.3.0] - 2026-02-28
 
 ### Added

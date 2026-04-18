@@ -34,6 +34,27 @@ trait EventAuditable
     }
 
     /**
+     * Handle dynamic query scopes like releasedBy($userId), approvedBy($userId), etc.
+     */
+    public static function __callStatic($method, $arguments)
+    {
+        // Match pattern: eventBy($userId)
+        if (preg_match('/^([a-z]+)By$/', $method, $matches)) {
+            $event = $matches[1];
+            $userId = $arguments[0] ?? null;
+
+            if ($userId === null) {
+                throw new \BadMethodCallException("User ID required for {$method}");
+            }
+
+            $column = "{$event}_by";
+            return static::query()->where($column, $userId);
+        }
+
+        throw new \BadMethodCallException("Call to undefined static method {$method}");
+    }
+
+    /**
      * Get the user who performed the event
      */
     protected function getEventUser(string $event): ?BelongsTo
@@ -72,19 +93,5 @@ trait EventAuditable
         }
 
         return $this->auditableColumnCache[$column];
-    }
-
-    /**
-     * Scope to filter by event user
-     */
-    public function scopeEventBy(Builder $query, string $event, int|string $userId): Builder
-    {
-        $column = "{$event}_by";
-        
-        if (!$this->hasEventColumn($column)) {
-            return $query;
-        }
-
-        return $query->where($column, $userId);
     }
 }

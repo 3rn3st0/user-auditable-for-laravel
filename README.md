@@ -169,9 +169,35 @@ class Post extends Model
 }
 ```
 
+Use the `EventAuditable` trait for dynamic access to custom events:
+
+```php
+<?php
+
+namespace App\Models;
+
+use ErnestoCh\UserAuditable\Traits\EventAuditable;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    use EventAuditable;
+
+    protected $fillable = [
+        'name',
+        'released_by',
+        'released_at',
+        'approved_by',
+        'approved_at'
+    ];
+}
+```
+
 ### Relationships
 
-The trait automatically provides relationships:
+The traits automatically provide relationships:
+
+#### UserAuditable Relationships
 
 ```php
 $post = Post::first();
@@ -186,7 +212,26 @@ $updater = $post->updater;
 $deleter = $post->deleter;
 ```
 
+#### EventAuditable Relationships
+
+With `EventAuditable` trait, access relationships dynamically for any event:
+
+```php
+$product = Product::first();
+
+// Get user who released the product
+$releasedBy = $product->releasedBy(); // BelongsTo User
+
+// Get user who approved the product
+$approvedBy = $product->approvedBy(); // BelongsTo User
+
+// Works for any event defined via eventAuditable() macro
+$archivedBy = $product->archivedBy();
+```
+
 ### Query Scopes
+
+#### UserAuditable Scopes
 
 Filter records by user actions:
 
@@ -201,45 +246,19 @@ $posts = Post::updatedBy(2)->get();
 $posts = Post::deletedBy(3)->get();
 ```
 
-### Custom Event Tracking
+#### EventAuditable Scopes
 
-Use the `EventAuditable` trait in your models to dynamically access custom events defined via the `eventAuditable()` macro:
-
-```php
-<?php
-
-namespace App\Models;
-
-use ErnestoCh\UserAuditable\Traits\EventAuditable;
-use Illuminate\Database\Eloquent\Model;
-
-class Product extends Model
-{
-    use EventAuditable;
-    
-    protected $fillable = [
-        'title',
-        'content',
-        'released_by',
-        'released_at'
-    ];
-}
-```
-
-Then access event relationships and timestamps dynamically:
+With `EventAuditable` trait, filter by any event user dynamically:
 
 ```php
-$product = Product::first();
+// Get products released by user with ID 5
+$released = Product::releasedBy(5)->get();
 
-// Get user who released the product
-$releasedBy = $product->releasedBy(); // BelongsTo User
+// Get products approved by user with ID 10
+$approved = Product::approvedBy(10)->get();
 
-// Get when it was released
-$releasedAt = $product->releasedAt(); // Carbon timestamp
-
-// Filter products by event user (query scopes)
-$released = Product::releasedBy($userId)->get();
-$approved = Product::approvedBy($userId)->get();
+// Works for any event defined via eventAuditable() macro
+$archived = Product::archivedBy(8)->get();
 ```
 
 ## Available Macros

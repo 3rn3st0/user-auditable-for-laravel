@@ -290,4 +290,14 @@ class UserAuditableServiceProvider extends ServiceProvider
             return $this;
         });
     }
+
+    protected function dropUuidColumn(): void
+    {
+        Blueprint::macro('dropUuidColumn', function (string $columnName = 'uuid') {
+            /** @var Blueprint $this */
+            $this->dropUnique(["{$columnName}_unique"]);
+            $this->dropColumn($columnName);
+            return $this;
+        });
+    }
 }

@@ -310,4 +310,13 @@ class UserAuditableServiceProvider extends ServiceProvider
             return $this;
         });
     }
+
+    protected function dropStatusColumn(): void
+    {
+        Blueprint::macro('dropStatusColumn', function (string $columnName = 'status') {
+            /** @var Blueprint $this */
+            $this->dropColumn($columnName);
+            return $this;
+        });
+    }
 }

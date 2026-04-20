@@ -51,14 +51,13 @@ trait EventAuditable
             return static::query()->where($column, $userId);
         }
 
-        // If the method doesn't match our pattern, try to call it on the parent class
-        // This allows standard Eloquent methods like create() to work properly
-        $parentClass = get_parent_class(static::class);
-        if ($parentClass && method_exists($parentClass, $method)) {
-            return call_user_func_array([$parentClass, $method], $arguments);
+        // For all other static methods, attempt to use forward_static_call
+        // This allows Eloquent methods like create() to work properly
+        try {
+            return forward_static_call_array([static::class, $method], $arguments);
+        } catch (\Throwable $e) {
+            throw new \BadMethodCallException("Call to undefined static method {$method}");
         }
-
-        throw new \BadMethodCallException("Call to undefined static method {$method}");
     }
 
     /**

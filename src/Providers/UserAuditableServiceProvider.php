@@ -140,14 +140,14 @@ class UserAuditableServiceProvider extends ServiceProvider
         Blueprint::macro('dropUserAuditable', function (bool $dropForeign = true) {
             /** @var Blueprint $this */
 
-            // SQLite doesn't support dropping foreign keys
-            if ($dropForeign && $this->getConnection()->getDriverName() !== 'sqlite') {
+            if ($dropForeign) {
                 try {
                     $this->dropForeign(['created_by']);
                     $this->dropForeign(['updated_by']);
                     $this->dropForeign(['deleted_by']);
                 } catch (\Exception $e) {
-                    // Ignore exceptions for databases that don't support dropping foreign keys
+                    // SQLite and some other databases don't support dropping foreign keys
+                    // Silently ignore foreign key drops
                 }
             }
 
@@ -268,12 +268,12 @@ class UserAuditableServiceProvider extends ServiceProvider
                 );
             }
 
-            // SQLite doesn't support dropping foreign keys
-            if (($column === null || $column === 'by') && $dropForeign && $this->getConnection()->getDriverName() !== 'sqlite') {
+            if (($column === null || $column === 'by') && $dropForeign) {
                 try {
                     $this->dropForeign(["{$event}_by"]);
                 } catch (\Exception $e) {
-                    // Ignore exceptions for databases that don't support dropping foreign keys
+                    // SQLite and some other databases don't support dropping foreign keys
+                    // Silently ignore foreign key drops
                 }
             }
 

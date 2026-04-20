@@ -11,19 +11,7 @@ trait EventAuditable
     /**
      * Cache for database column existence checks
      */
-    protected array $auditableColumnCache = [];
-
-    /**
-     * Allow access to the auditable column cache for testing
-     */
-    public function __get($name)
-    {
-        if ($name === 'auditableColumnCache') {
-            return $this->auditableColumnCache;
-        }
-        
-        throw new \BadMethodCallException("Undefined property: {$name}");
-    }
+    public array $auditableColumnCache = [];
 
     /**
      * Handle dynamic event methods like releasedBy(), approvedAt(), etc.
@@ -42,7 +30,8 @@ trait EventAuditable
             }
         }
 
-        throw new \BadMethodCallException("Call to undefined method {$method}");
+        // Delegate to parent for methods not handled by this trait (Eloquent's __call)
+        return parent::__call($method, $arguments);
     }
 
     /**
@@ -50,7 +39,7 @@ trait EventAuditable
      */
     public static function __callStatic($method, $arguments)
     {
-        // Match pattern: eventBy($userId) - for dynamic query scopes
+        // Match pattern: eventBy($userId)
         if (preg_match('/^([a-z]+)By$/', $method, $matches)) {
             $event = $matches[1];
             $userId = $arguments[0] ?? null;
@@ -60,12 +49,19 @@ trait EventAuditable
             }
 
             $column = "{$event}_by";
-            return static::query()->where($column, $userId);
+
+            // Check if column exists to handle nonexistent columns gracefully
+            $instance = new static;
+            if (Schema::hasColumn($instance->getTable(), $column)) {
+                return static::query()->where($column, $userId);
+            }
+
+            // Return query without WHERE if column doesn't exist
+            return static::query();
         }
 
-        // For other methods, allow Laravel's Model to handle them through query builder
-        // This delegates to QueryBuilder for methods like create(), find(), hydrate(), etc.
-        return static::query()->$method(...$arguments);
+        // Delegate to parent for methods not handled by this trait (Eloquent's __callStatic)
+        return parent::__callStatic($method, $arguments);
     }
 
     /**
@@ -74,7 +70,7 @@ trait EventAuditable
     protected function getEventUser(string $event): ?BelongsTo
     {
         $column = "{$event}_by";
-        
+
         if (!$this->hasEventColumn($column)) {
             return null;
         }
@@ -89,7 +85,7 @@ trait EventAuditable
     protected function getEventTimestamp(string $event)
     {
         $column = "{$event}_at";
-        
+
         if (!$this->hasEventColumn($column)) {
             return null;
         }

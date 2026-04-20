@@ -139,31 +139,35 @@ class UserAuditableServiceProvider extends ServiceProvider
     {
         Blueprint::macro('dropUserAuditable', function (bool $dropForeign = true) {
             /** @var Blueprint $this */
+            $tableName = $this->getTable();
 
-            if ($dropForeign) {
-                try {
-                    $this->dropForeign(['created_by']);
-                } catch (\Throwable $e) {
-                    // SQLite and some other databases don't support dropping foreign keys
+            // Use separate Schema::table() calls so each operation is independent
+            // Blueprint defers commands, so try-catch inside a single Blueprint won't catch errors
+            foreach (['created_by', 'updated_by', 'deleted_by'] as $col) {
+                if ($dropForeign) {
+                    try {
+                        \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) use ($col) {
+                            $t->dropForeign([$col]);
+                        });
+                    } catch (\Throwable $e) {
+                        // SQLite doesn't support dropping foreign keys
+                    }
                 }
-                try {
-                    $this->dropForeign(['updated_by']);
-                } catch (\Throwable $e) {
-                    // SQLite and some other databases don't support dropping foreign keys
-                }
-                try {
-                    $this->dropForeign(['deleted_by']);
-                } catch (\Throwable $e) {
-                    // SQLite and some other databases don't support dropping foreign keys
-                }
-            }
 
-            // Try to drop columns one by one, catching any errors
-            foreach (['created_by', 'updated_by', 'deleted_by'] as $column) {
                 try {
-                    $this->dropColumn($column);
+                    \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) use ($col) {
+                        $t->dropIndex([$col]);
+                    });
                 } catch (\Throwable $e) {
-                    // Silently ignore - column may not exist or have constraints
+                    // Index may not exist
+                }
+
+                try {
+                    \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) use ($col) {
+                        $t->dropColumn($col);
+                    });
+                } catch (\Throwable $e) {
+                    // Column may not exist
                 }
             }
 
@@ -282,27 +286,45 @@ class UserAuditableServiceProvider extends ServiceProvider
                 );
             }
 
-            if (($column === null || $column === 'by') && $dropForeign) {
+            $tableName = $this->getTable();
+
+            // Drop _by column (foreign key + index + column) using separate calls
+            if ($column === null || $column === 'by') {
+                if ($dropForeign) {
+                    try {
+                        \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) use ($event) {
+                            $t->dropForeign(["{$event}_by"]);
+                        });
+                    } catch (\Throwable $e) {
+                        // SQLite doesn't support dropping foreign keys
+                    }
+                }
+
                 try {
-                    $this->dropForeign(["{$event}_by"]);
+                    \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) use ($event) {
+                        $t->dropIndex(["{$event}_by"]);
+                    });
                 } catch (\Throwable $e) {
-                    // SQLite and some other databases don't support dropping foreign keys
+                    // Index may not exist
+                }
+
+                try {
+                    \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) use ($event) {
+                        $t->dropColumn("{$event}_by");
+                    });
+                } catch (\Throwable $e) {
+                    // Column may not exist
                 }
             }
 
-            // Try to drop columns individually, catching any errors
+            // Drop _at column (simple timestamp, no index)
             if ($column === null || $column === 'at') {
                 try {
-                    $this->dropColumn("{$event}_at");
+                    \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) use ($event) {
+                        $t->dropColumn("{$event}_at");
+                    });
                 } catch (\Throwable $e) {
-                    // Silently ignore - column may not exist or have constraints
-                }
-            }
-            if ($column === null || $column === 'by') {
-                try {
-                    $this->dropColumn("{$event}_by");
-                } catch (\Throwable $e) {
-                    // Silently ignore - column may not exist or have constraints
+                    // Column may not exist
                 }
             }
 
@@ -314,9 +336,29 @@ class UserAuditableServiceProvider extends ServiceProvider
     {
         Blueprint::macro('dropFullAuditable', function (bool $dropForeign = true) {
             /** @var Blueprint $this */
-            $this->dropTimestamps();
-            $this->dropSoftDeletes();
+            $tableName = $this->getTable();
+
+            // Drop timestamps in a separate call
+            try {
+                \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) {
+                    $t->dropTimestamps();
+                });
+            } catch (\Throwable $e) {
+                // Columns may not exist
+            }
+
+            // Drop soft deletes in a separate call
+            try {
+                \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) {
+                    $t->dropSoftDeletes();
+                });
+            } catch (\Throwable $e) {
+                // Column may not exist
+            }
+
+            // Drop user auditable columns (uses separate Schema::table calls internally)
             $this->dropUserAuditable($dropForeign);
+
             return $this;
         });
     }
@@ -325,16 +367,24 @@ class UserAuditableServiceProvider extends ServiceProvider
     {
         Blueprint::macro('dropUuidColumn', function (string $columnName = 'uuid') {
             /** @var Blueprint $this */
+            $tableName = $this->getTable();
+
             try {
-                $this->dropUnique(["{$columnName}_unique"]);
+                \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) use ($columnName) {
+                    $t->dropUnique([$columnName]);
+                });
             } catch (\Throwable $e) {
-                // SQLite may handle unique indexes differently
+                // Unique index may not exist or have a different name
             }
+
             try {
-                $this->dropColumn($columnName);
+                \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) use ($columnName) {
+                    $t->dropColumn($columnName);
+                });
             } catch (\Throwable $e) {
                 // Column may not exist
             }
+
             return $this;
         });
     }
@@ -343,16 +393,24 @@ class UserAuditableServiceProvider extends ServiceProvider
     {
         Blueprint::macro('dropUlidColumn', function (string $columnName = 'ulid') {
             /** @var Blueprint $this */
+            $tableName = $this->getTable();
+
             try {
-                $this->dropUnique(["{$columnName}_unique"]);
+                \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) use ($columnName) {
+                    $t->dropUnique([$columnName]);
+                });
             } catch (\Throwable $e) {
-                // SQLite may handle unique indexes differently
+                // Unique index may not exist or have a different name
             }
+
             try {
-                $this->dropColumn($columnName);
+                \Illuminate\Support\Facades\Schema::table($tableName, function (Blueprint $t) use ($columnName) {
+                    $t->dropColumn($columnName);
+                });
             } catch (\Throwable $e) {
                 // Column may not exist
             }
+
             return $this;
         });
     }

@@ -51,8 +51,7 @@ trait EventAuditable
             return static::query()->where($column, $userId);
         }
 
-        // For any other undefined static method, just raise the error
-        // This allows Eloquent to handle its own static methods
+        // For any other undefined static method, throw a clear error
         throw new \BadMethodCallException("Call to undefined static method " . static::class . "::{$method}");
     }
 

@@ -38,7 +38,7 @@ trait EventAuditable
      */
     public static function __callStatic($method, $arguments)
     {
-        // Match pattern: eventBy($userId)
+        // Match pattern: eventBy($userId) - for dynamic query scopes
         if (preg_match('/^([a-z]+)By$/', $method, $matches)) {
             $event = $matches[1];
             $userId = $arguments[0] ?? null;
@@ -51,8 +51,9 @@ trait EventAuditable
             return static::query()->where($column, $userId);
         }
 
-        // For any other undefined static method, throw a clear error
-        throw new \BadMethodCallException("Call to undefined static method " . static::class . "::{$method}");
+        // For other methods, allow Laravel's Model to handle them through query builder
+        // This delegates to QueryBuilder for methods like create(), find(), hydrate(), etc.
+        return static::query()->$method(...$arguments);
     }
 
     /**

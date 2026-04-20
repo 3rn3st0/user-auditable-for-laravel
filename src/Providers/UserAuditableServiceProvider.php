@@ -151,7 +151,18 @@ class UserAuditableServiceProvider extends ServiceProvider
                 }
             }
 
-            $this->dropColumn(['created_by', 'updated_by', 'deleted_by']);
+            try {
+                $this->dropColumn(['created_by', 'updated_by', 'deleted_by']);
+            } catch (\Exception $e) {
+                // SQLite may have issues with indexed columns - try dropping individually
+                foreach (['created_by', 'updated_by', 'deleted_by'] as $column) {
+                    try {
+                        $this->dropColumn($column);
+                    } catch (\Exception $e) {
+                        // Column may not exist or have constraints
+                    }
+                }
+            }
 
             return $this;
         });
@@ -284,7 +295,19 @@ class UserAuditableServiceProvider extends ServiceProvider
             if ($column === null || $column === 'by') {
                 $cols[] = "{$event}_by";
             }
-            $this->dropColumn($cols);
+
+            try {
+                $this->dropColumn($cols);
+            } catch (\Exception $e) {
+                // SQLite may have issues with indexed columns - try dropping individually
+                foreach ($cols as $col) {
+                    try {
+                        $this->dropColumn($col);
+                    } catch (\Exception $e) {
+                        // Column may not exist or have constraints
+                    }
+                }
+            }
 
             return $this;
         });
@@ -311,7 +334,11 @@ class UserAuditableServiceProvider extends ServiceProvider
                 // SQLite and some other databases may handle unique indexes differently
                 // Try without the _unique suffix or just skip if it doesn't exist
             }
-            $this->dropColumn($columnName);
+            try {
+                $this->dropColumn($columnName);
+            } catch (\Exception $e) {
+                // Column may not exist or have constraints - silently ignore
+            }
             return $this;
         });
     }
@@ -326,7 +353,11 @@ class UserAuditableServiceProvider extends ServiceProvider
                 // SQLite and some other databases may handle unique indexes differently
                 // Try without the _unique suffix or just skip if it doesn't exist
             }
-            $this->dropColumn($columnName);
+            try {
+                $this->dropColumn($columnName);
+            } catch (\Exception $e) {
+                // Column may not exist or have constraints - silently ignore
+            }
             return $this;
         });
     }

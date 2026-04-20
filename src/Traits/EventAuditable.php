@@ -14,6 +14,18 @@ trait EventAuditable
     protected array $auditableColumnCache = [];
 
     /**
+     * Allow access to the auditable column cache for testing
+     */
+    public function __get($name)
+    {
+        if ($name === 'auditableColumnCache') {
+            return $this->auditableColumnCache;
+        }
+        
+        throw new \BadMethodCallException("Undefined property: {$name}");
+    }
+
+    /**
      * Handle dynamic event methods like releasedBy(), approvedAt(), etc.
      */
     public function __call($method, $arguments)

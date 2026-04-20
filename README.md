@@ -16,6 +16,7 @@ A Laravel package that provides user auditing capabilities for your database tab
 - 🎯 **Multiple Key Types**: Support for ID, UUID, and ULID
 - 🏷️ **Relationships**: Built-in relationships to user models
 - 📊 **Query Scopes**: Easy filtering by user actions
+- 🎭 **Custom Events**: Track any business event with dynamic `EventAuditable` trait
 - ⚡ **Zero Configuration**: Works out of the box
 
 ## Requirements
@@ -73,10 +74,6 @@ Schema::create('settings', function (Blueprint $table) {
     $table->userAuditable('users', 'ulid');
 });
 
-// Reversing user auditing columns in a down() migration
-Schema::table('posts', function (Blueprint $table) {
-    $table->dropUserAuditable(); // Drops foreign keys and audit columns
-});
 ```
 
 #### Custom Event Columns
@@ -99,10 +96,49 @@ Schema::table('orders', function (Blueprint $table) {
 Schema::table('posts', function (Blueprint $table) {
     $table->eventAuditable('archived', 'by');
 });
+```
 
-// Reversing in a down() migration
+#### Reversing Migrations
+
+All creation macros have corresponding drop macros for clean rollbacks:
+
+```php
+// Reverse fullAuditable()
+Schema::table('posts', function (Blueprint $table) {
+    $table->dropFullAuditable(); // Drops timestamps, soft deletes, and audit columns
+});
+
+// Reverse userAuditable()
+Schema::table('settings', function (Blueprint $table) {
+    $table->dropUserAuditable(); // Drops audit columns only
+});
+
+// Reverse uuidColumn()
 Schema::table('products', function (Blueprint $table) {
-    $table->dropEventAuditable('released'); // Drops FK + both columns
+    $table->dropUuidColumn();
+    // or with custom column name:
+    // $table->dropUuidColumn('product_uuid');
+});
+
+// Reverse ulidColumn()
+Schema::table('orders', function (Blueprint $table) {
+    $table->dropUlidColumn();
+    // or with custom column name:
+    // $table->dropUlidColumn('order_ulid');
+});
+
+// Reverse statusColumn()
+Schema::table('users', function (Blueprint $table) {
+    $table->dropStatusColumn();
+    // or with custom column name:
+    // $table->dropStatusColumn('user_status');
+});
+
+// Reverse eventAuditable()
+Schema::table('products', function (Blueprint $table) {
+    $table->dropEventAuditable('released');     // Both columns
+    $table->dropEventAuditable('released', 'by'); // Only released_by
+    $table->dropEventAuditable('released', 'at'); // Only approved_at
 });
 ```
 
@@ -133,9 +169,35 @@ class Post extends Model
 }
 ```
 
+Use the `EventAuditable` trait for dynamic access to custom events:
+
+```php
+<?php
+
+namespace App\Models;
+
+use ErnestoCh\UserAuditable\Traits\EventAuditable;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    use EventAuditable;
+
+    protected $fillable = [
+        'name',
+        'released_by',
+        'released_at',
+        'approved_by',
+        'approved_at'
+    ];
+}
+```
+
 ### Relationships
 
-The trait automatically provides relationships:
+The traits automatically provide relationships:
+
+#### UserAuditable Relationships
 
 ```php
 $post = Post::first();
@@ -150,7 +212,26 @@ $updater = $post->updater;
 $deleter = $post->deleter;
 ```
 
+#### EventAuditable Relationships
+
+With `EventAuditable` trait, access relationships dynamically for any event:
+
+```php
+$product = Product::first();
+
+// Get user who released the product
+$releasedBy = $product->releasedBy(); // BelongsTo User
+
+// Get user who approved the product
+$approvedBy = $product->approvedBy(); // BelongsTo User
+
+// Works for any event defined via eventAuditable() macro
+$archivedBy = $product->archivedBy();
+```
+
 ### Query Scopes
+
+#### UserAuditable Scopes
 
 Filter records by user actions:
 
@@ -165,6 +246,21 @@ $posts = Post::updatedBy(2)->get();
 $posts = Post::deletedBy(3)->get();
 ```
 
+#### EventAuditable Scopes
+
+With `EventAuditable` trait, filter by any event user dynamically:
+
+```php
+// Get products released by user with ID 5
+$released = Product::releasedBy(5)->get();
+
+// Get products approved by user with ID 10
+$approved = Product::approvedBy(10)->get();
+
+// Works for any event defined via eventAuditable() macro
+$archived = Product::archivedBy(8)->get();
+```
+
 ## Available Macros
 
 | Macro | Description | Parameters |
@@ -172,9 +268,13 @@ $posts = Post::deletedBy(3)->get();
 | userAuditable() | Adds user auditing columns | ?string $userTable = null, ?string $keyType = null |
 | dropUserAuditable() | Removes user auditing columns | bool $dropForeign = true |
 | fullAuditable() | Adds timestamps, soft deletes, and user auditing | ?string $userTable = null, ?string $keyType = null |
+| dropFullAuditable() | Removes timestamps, soft deletes, and user auditing | bool $dropForeign = true |
 | uuidColumn() | Adds UUID column | string $columnName = 'uuid' |
+| dropUuidColumn() | Removes UUID column | string $columnName = 'uuid' |
 | ulidColumn() | Adds ULID column | string $columnName = 'ulid' |
+| dropUlidColumn() | Removes ULID column | string $columnName = 'ulid' |
 | statusColumn() | Adds status enum column | string $columnName = 'status', array $allowed = ['active','inactive','pending'], string $default = 'active' |
+| dropStatusColumn() | Removes status column | string $columnName = 'status' |
 | eventAuditable() | Adds a custom event timestamp and/or user FK | string $event, ?string $column = null |
 | dropEventAuditable() | Removes custom event columns | string $event, ?string $column = null, bool $dropForeign = true |
 

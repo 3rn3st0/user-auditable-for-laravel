@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for considering contributing to Laravel User Auditable!
+Thank you for considering contributing to Laravel User Auditable!!
 
 ## Pull Requests
 

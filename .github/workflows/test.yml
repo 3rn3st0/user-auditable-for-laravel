@@ -5,11 +5,11 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.laravel == '9.*' }}
     strategy:
+      fail-fast: false
       matrix:
         php: ['8.1', '8.2', '8.3', '8.4']
-        laravel: ['9.*', '10.*', '11.*', '12.*']
+        laravel: ['10.*', '11.*', '12.*']
         exclude:
           - php: '8.1'
             laravel: '11.*'
@@ -32,7 +32,7 @@ jobs:
     - name: Install dependencies
       run: |
         composer require "laravel/framework:${{ matrix.laravel }}" --no-update --no-interaction
-        composer update --prefer-dist --no-interaction --no-progress
+        composer update --prefer-dist --no-interaction --no-progress --no-audit
 
     - name: Execute tests
       env:

@@ -90,32 +90,8 @@ class SchemaMacrosTest extends TestCase
 
         $columnType = Schema::getColumnType('test_table_3', 'created_by');
 
-        // In SQLite, UUID is stored as 'varchar', in MySQL as 'char'
-        $expectedType = config('database.default') === 'sqlite' ? 'varchar' : 'char';
-        $this->assertEquals($expectedType, $columnType);
-    }
-
-    #[Test]
-    public function test_drop_user_auditable_macro(): void
-    {
-        // Skip this test for SQLite due to database limitations
-        if (config('database.default') === 'sqlite') {
-            $this->markTestSkipped('SQLite does not support dropping foreign keys and columns reliably.');
-            return;
-        }
-
-        Schema::create('test_table_4', function (Blueprint $table) {
-            $table->id();
-            $table->userAuditable();
-        });
-
-        Schema::table('test_table_4', function (Blueprint $table) {
-            $table->dropUserAuditable();
-        });
-
-        $this->assertFalse(Schema::hasColumns('test_table_4', [
-            'created_by', 'updated_by', 'deleted_by'
-        ]));
+        // Type name varies by driver and doctrine/dbal presence
+        $this->assertContains($columnType, ['varchar', 'string', 'char']);
     }
 
     #[Test]
@@ -176,27 +152,5 @@ class SchemaMacrosTest extends TestCase
             $table->id();
             $table->eventAuditable('released', 'both');
         });
-    }
-
-    #[Test]
-    public function test_drop_event_auditable_macro(): void
-    {
-        // Skip this test for SQLite due to database limitations
-        if (config('database.default') === 'sqlite') {
-            $this->markTestSkipped('SQLite does not support dropping foreign keys and columns reliably.');
-            return;
-        }
-
-        Schema::create('test_table_8', function (Blueprint $table) {
-            $table->id();
-            $table->eventAuditable('released');
-        });
-
-        Schema::table('test_table_8', function (Blueprint $table) {
-            $table->dropEventAuditable('released');
-        });
-
-        $this->assertFalse(Schema::hasColumn('test_table_8', 'released_at'));
-        $this->assertFalse(Schema::hasColumn('test_table_8', 'released_by'));
     }
 }

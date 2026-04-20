@@ -51,13 +51,9 @@ trait EventAuditable
             return static::query()->where($column, $userId);
         }
 
-        // For all other static methods, attempt to use forward_static_call
-        // This allows Eloquent methods like create() to work properly
-        try {
-            return forward_static_call_array([static::class, $method], $arguments);
-        } catch (\Throwable $e) {
-            throw new \BadMethodCallException("Call to undefined static method {$method}");
-        }
+        // For any other undefined static method, just raise the error
+        // This allows Eloquent to handle its own static methods
+        throw new \BadMethodCallException("Call to undefined static method " . static::class . "::{$method}");
     }
 
     /**

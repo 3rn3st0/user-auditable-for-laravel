@@ -143,24 +143,27 @@ class UserAuditableServiceProvider extends ServiceProvider
             if ($dropForeign) {
                 try {
                     $this->dropForeign(['created_by']);
-                    $this->dropForeign(['updated_by']);
-                    $this->dropForeign(['deleted_by']);
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     // SQLite and some other databases don't support dropping foreign keys
-                    // Silently ignore foreign key drops
+                }
+                try {
+                    $this->dropForeign(['updated_by']);
+                } catch (\Throwable $e) {
+                    // SQLite and some other databases don't support dropping foreign keys
+                }
+                try {
+                    $this->dropForeign(['deleted_by']);
+                } catch (\Throwable $e) {
+                    // SQLite and some other databases don't support dropping foreign keys
                 }
             }
 
-            try {
-                $this->dropColumn(['created_by', 'updated_by', 'deleted_by']);
-            } catch (\Exception $e) {
-                // SQLite may have issues with indexed columns - try dropping individually
-                foreach (['created_by', 'updated_by', 'deleted_by'] as $column) {
-                    try {
-                        $this->dropColumn($column);
-                    } catch (\Exception $e) {
-                        // Column may not exist or have constraints
-                    }
+            // Try to drop columns one by one, catching any errors
+            foreach (['created_by', 'updated_by', 'deleted_by'] as $column) {
+                try {
+                    $this->dropColumn($column);
+                } catch (\Throwable $e) {
+                    // Silently ignore - column may not exist or have constraints
                 }
             }
 
@@ -282,30 +285,24 @@ class UserAuditableServiceProvider extends ServiceProvider
             if (($column === null || $column === 'by') && $dropForeign) {
                 try {
                     $this->dropForeign(["{$event}_by"]);
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     // SQLite and some other databases don't support dropping foreign keys
-                    // Silently ignore foreign key drops
                 }
             }
 
-            $cols = [];
+            // Try to drop columns individually, catching any errors
             if ($column === null || $column === 'at') {
-                $cols[] = "{$event}_at";
+                try {
+                    $this->dropColumn("{$event}_at");
+                } catch (\Throwable $e) {
+                    // Silently ignore - column may not exist or have constraints
+                }
             }
             if ($column === null || $column === 'by') {
-                $cols[] = "{$event}_by";
-            }
-
-            try {
-                $this->dropColumn($cols);
-            } catch (\Exception $e) {
-                // SQLite may have issues with indexed columns - try dropping individually
-                foreach ($cols as $col) {
-                    try {
-                        $this->dropColumn($col);
-                    } catch (\Exception $e) {
-                        // Column may not exist or have constraints
-                    }
+                try {
+                    $this->dropColumn("{$event}_by");
+                } catch (\Throwable $e) {
+                    // Silently ignore - column may not exist or have constraints
                 }
             }
 
@@ -330,14 +327,13 @@ class UserAuditableServiceProvider extends ServiceProvider
             /** @var Blueprint $this */
             try {
                 $this->dropUnique(["{$columnName}_unique"]);
-            } catch (\Exception $e) {
-                // SQLite and some other databases may handle unique indexes differently
-                // Try without the _unique suffix or just skip if it doesn't exist
+            } catch (\Throwable $e) {
+                // SQLite may handle unique indexes differently
             }
             try {
                 $this->dropColumn($columnName);
-            } catch (\Exception $e) {
-                // Column may not exist or have constraints - silently ignore
+            } catch (\Throwable $e) {
+                // Column may not exist
             }
             return $this;
         });
@@ -349,14 +345,13 @@ class UserAuditableServiceProvider extends ServiceProvider
             /** @var Blueprint $this */
             try {
                 $this->dropUnique(["{$columnName}_unique"]);
-            } catch (\Exception $e) {
-                // SQLite and some other databases may handle unique indexes differently
-                // Try without the _unique suffix or just skip if it doesn't exist
+            } catch (\Throwable $e) {
+                // SQLite may handle unique indexes differently
             }
             try {
                 $this->dropColumn($columnName);
-            } catch (\Exception $e) {
-                // Column may not exist or have constraints - silently ignore
+            } catch (\Throwable $e) {
+                // Column may not exist
             }
             return $this;
         });

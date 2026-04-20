@@ -141,7 +141,7 @@ class UserAuditableServiceProvider extends ServiceProvider
             /** @var Blueprint $this */
 
             // SQLite doesn't support dropping foreign keys
-            if ($dropForeign && !$this->getConnection()->getDriverName() === 'sqlite') {
+            if ($dropForeign && $this->getConnection()->getDriverName() !== 'sqlite') {
                 try {
                     $this->dropForeign(['created_by']);
                     $this->dropForeign(['updated_by']);
@@ -269,7 +269,7 @@ class UserAuditableServiceProvider extends ServiceProvider
             }
 
             // SQLite doesn't support dropping foreign keys
-            if (($column === null || $column === 'by') && $dropForeign && !$this->getConnection()->getDriverName() === 'sqlite') {
+            if (($column === null || $column === 'by') && $dropForeign && $this->getConnection()->getDriverName() !== 'sqlite') {
                 try {
                     $this->dropForeign(["{$event}_by"]);
                 } catch (\Exception $e) {

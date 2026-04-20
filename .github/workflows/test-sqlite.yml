@@ -33,7 +33,7 @@ jobs:
     - name: Install dependencies
       run: |
         composer require "laravel/framework:${{ matrix.laravel }}" --no-update --no-interaction
-        composer update --prefer-dist --no-interaction --no-progress
+        composer update --prefer-dist --no-interaction --no-progress --no-audit
 
     - name: Execute tests
       env:

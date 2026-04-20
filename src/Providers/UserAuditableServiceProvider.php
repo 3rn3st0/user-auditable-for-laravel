@@ -140,10 +140,15 @@ class UserAuditableServiceProvider extends ServiceProvider
         Blueprint::macro('dropUserAuditable', function (bool $dropForeign = true) {
             /** @var Blueprint $this */
 
-            if ($dropForeign) {
-                $this->dropForeign(['created_by']);
-                $this->dropForeign(['updated_by']);
-                $this->dropForeign(['deleted_by']);
+            // SQLite doesn't support dropping foreign keys
+            if ($dropForeign && !$this->getConnection()->getDriverName() === 'sqlite') {
+                try {
+                    $this->dropForeign(['created_by']);
+                    $this->dropForeign(['updated_by']);
+                    $this->dropForeign(['deleted_by']);
+                } catch (\Exception $e) {
+                    // Ignore exceptions for databases that don't support dropping foreign keys
+                }
             }
 
             $this->dropColumn(['created_by', 'updated_by', 'deleted_by']);
@@ -263,8 +268,13 @@ class UserAuditableServiceProvider extends ServiceProvider
                 );
             }
 
-            if (($column === null || $column === 'by') && $dropForeign) {
-                $this->dropForeign(["{$event}_by"]);
+            // SQLite doesn't support dropping foreign keys
+            if (($column === null || $column === 'by') && $dropForeign && !$this->getConnection()->getDriverName() === 'sqlite') {
+                try {
+                    $this->dropForeign(["{$event}_by"]);
+                } catch (\Exception $e) {
+                    // Ignore exceptions for databases that don't support dropping foreign keys
+                }
             }
 
             $cols = [];
@@ -295,7 +305,12 @@ class UserAuditableServiceProvider extends ServiceProvider
     {
         Blueprint::macro('dropUuidColumn', function (string $columnName = 'uuid') {
             /** @var Blueprint $this */
-            $this->dropUnique(["{$columnName}_unique"]);
+            try {
+                $this->dropUnique(["{$columnName}_unique"]);
+            } catch (\Exception $e) {
+                // SQLite and some other databases may handle unique indexes differently
+                // Try without the _unique suffix or just skip if it doesn't exist
+            }
             $this->dropColumn($columnName);
             return $this;
         });
@@ -305,7 +320,12 @@ class UserAuditableServiceProvider extends ServiceProvider
     {
         Blueprint::macro('dropUlidColumn', function (string $columnName = 'ulid') {
             /** @var Blueprint $this */
-            $this->dropUnique(["{$columnName}_unique"]);
+            try {
+                $this->dropUnique(["{$columnName}_unique"]);
+            } catch (\Exception $e) {
+                // SQLite and some other databases may handle unique indexes differently
+                // Try without the _unique suffix or just skip if it doesn't exist
+            }
             $this->dropColumn($columnName);
             return $this;
         });

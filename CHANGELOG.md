@@ -4,7 +4,7 @@ All notable changes to `laravel-user-auditable` will be documented in this file.
 
 <!-- markdownlint-disable MD024 -->
 
-## [Unreleased]
+## [1.4.0] - 2026-05-02
 
 ### Added
 

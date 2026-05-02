@@ -23,6 +23,8 @@ return [
         'drop_status_column',
         'event_auditable',
         'drop_event_auditable',
+        'audit_log_table',
+        'drop_audit_log_table',
     ],
 
     /*
@@ -37,5 +39,25 @@ return [
     'defaults' => [
         'user_table' => 'users',
         'key_type' => 'id',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Change Tracking
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the optional ChangeAuditable trait.
+    |
+    */
+    'change_tracking' => [
+        'enabled' => true,
+        'table' => 'audit_logs',
+        'retain_days' => null,
+        'log_created' => true,
+        'log_updated' => true,
+        'log_deleted' => true,
+        'log_restored' => true,
+        'user_resolver' => null,
+        'user_type_resolver' => null,
     ],
 ];

@@ -17,6 +17,7 @@ A Laravel package that provides user auditing capabilities for your database tab
 - 🏷️ **Relationships**: Built-in relationships to user models
 - 📊 **Query Scopes**: Easy filtering by user actions
 - 🎭 **Custom Events**: Track any business event with dynamic `EventAuditable` trait
+- 🧾 **Change Tracking**: Log model changes and revert to previous states with `ChangeAuditable`
 - ⚡ **Zero Configuration**: Works out of the box
 
 ## Requirements
@@ -261,6 +262,25 @@ $approved = Product::approvedBy(10)->get();
 $archived = Product::archivedBy(8)->get();
 ```
 
+### Change Tracking
+
+`ChangeAuditable` provides model-level change logs and a `revertTo()` method
+that restores the current model instance to a previously logged state.
+
+`revertTo()` behavior:
+
+- Reverts the same model instance (`$this`) using the selected log's `old_values`.
+- Creates a new audit entry with event `reverted` after a successful revert.
+- Avoids infinite audit loops by performing the revert update quietly.
+- Throws `InvalidArgumentException` when:
+    - The provided log does not belong to the current model (`auditable_type` / `auditable_id` mismatch).
+    - The provided log has no `old_values` and therefore cannot be reverted.
+
+Practical note:
+
+- `updated`, `deleted`, and `reverted` logs are typically revertible (they include `old_values`).
+- `created` and `restored` logs are typically not revertible because they usually do not include `old_values`.
+
 ## Available Macros
 
 | Macro | Description | Parameters |
@@ -277,6 +297,8 @@ $archived = Product::archivedBy(8)->get();
 | dropStatusColumn() | Removes status column | string $columnName = 'status' |
 | eventAuditable() | Adds a custom event timestamp and/or user FK | string $event, ?string $column = null |
 | dropEventAuditable() | Removes custom event columns | string $event, ?string $column = null, bool $dropForeign = true |
+| auditLogTable() | Creates the standard audit log table structure | no parameters |
+| dropAuditLogTable() | Drops the current audit log table | no parameters |
 
 ## Testing
 

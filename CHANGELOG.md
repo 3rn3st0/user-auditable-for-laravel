@@ -4,6 +4,36 @@ All notable changes to `laravel-user-auditable` will be documented in this file.
 
 <!-- markdownlint-disable MD024 -->
 
+## [1.5.0] - 2026-05-03
+
+### Added
+
+- `ChangeAuditable` trait: logs model changes (create, update, delete, restore, revert) to a dedicated audit log table.
+  - `auditLogs(): MorphMany` — polymorphic relationship to all audit log entries for the model.
+  - `lastAuditLog(): ?AuditLog` — retrieves the most recent audit entry.
+  - `revertTo(AuditLog $log): bool` — restores the model to a previous state using `old_values` from the given log; creates a `reverted` entry afterwards.
+  - `diffBetween(AuditLog $from, AuditLog $to): array` — returns a field-by-field diff between two audit log entries.
+  - Respects `$hidden` and `$auditExclude` (denylist) or `$auditInclude` (allowlist) model properties.
+  - Supports custom user resolvers via config (`user_resolver`, `user_type_resolver`).
+  - Captures `ip_address` and `user_agent` from the current request automatically.
+  - Compatible with `UserAuditable` and `EventAuditable` traits simultaneously.
+- `AuditLog` Eloquent model (`ErnestoCh\UserAuditable\Models\AuditLog`):
+  - Polymorphic `auditable()` relationship.
+  - `user(): BelongsTo` relationship resolved from `user_type`.
+  - `pruneOlderThan(int $days): int` static method to delete old entries.
+  - Table name driven by `config('user-auditable.change_tracking.table')`.
+- `auditLogTable()` Blueprint macro: creates the standard audit log table with all required columns and indexes.
+- `dropAuditLogTable()` Blueprint macro: drops the audit log table.
+- `change_tracking` configuration section in `config/user-auditable.php`:
+  - `enabled`, `table`, `retain_days`, `log_created`, `log_updated`, `log_deleted`, `log_restored`
+  - `user_resolver`, `user_type_resolver` callables for custom auth resolution.
+- Full test suite for `ChangeAuditable` (10 tests), `AuditLog` model (1 test), and audit log macros (2 tests).
+
+### Changed
+
+- `EventAuditable`: `$auditableColumnCache` visibility unified to `protected` to resolve PHP fatal error when combined with `UserAuditable` in the same model.
+- Configuration (`config/user-auditable.php`): added `audit_log_table` and `drop_audit_log_table` to `enabled_macros`.
+
 ## [1.4.0] - 2026-05-02
 
 ### Added

@@ -264,8 +264,100 @@ $archived = Product::archivedBy(8)->get();
 
 ### Change Tracking
 
-`ChangeAuditable` provides model-level change logs and a `revertTo()` method
-that restores the current model instance to a previously logged state.
+`ChangeAuditable` automatically logs every create, update, delete, restore, and revert operation on your model to a dedicated `audit_logs` table.
+
+#### Migration
+
+Create the audit log table using the provided macro:
+
+```php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('audit_logs', function (Blueprint $table) {
+            $table->auditLogTable();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('audit_logs', function (Blueprint $table) {
+            $table->dropAuditLogTable();
+        });
+    }
+};
+```
+
+#### Model Setup
+
+```php
+<?php
+
+namespace App\Models;
+
+use ErnestoCh\UserAuditable\Traits\ChangeAuditable;
+use ErnestoCh\UserAuditable\Traits\EventAuditable;
+use ErnestoCh\UserAuditable\Traits\UserAuditable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Post extends Model
+{
+    use ChangeAuditable, EventAuditable, SoftDeletes, UserAuditable;
+
+    protected $fillable = ['title', 'content', 'status'];
+
+    // Fields to never log (denylist)
+    protected array $auditExclude = ['internal_notes'];
+
+    // Or log only specific fields (allowlist — overrides auditExclude)
+    // protected array $auditInclude = ['title', 'status'];
+}
+```
+
+> `$hidden` model properties are also automatically excluded from audit logs.
+
+#### Accessing Audit Logs
+
+```php
+$post = Post::find(1);
+
+// All audit entries (MorphMany)
+$logs = $post->auditLogs()->get();
+
+// Most recent entry
+$latest = $post->lastAuditLog();
+
+// Filter by event
+$updates = $post->auditLogs()->where('event', 'updated')->get();
+
+// Each AuditLog entry has:
+// $log->event        // 'created' | 'updated' | 'deleted' | 'restored' | 'reverted'
+// $log->old_values   // array|null
+// $log->new_values   // array|null
+// $log->user_id
+// $log->user_type
+// $log->ip_address
+// $log->user_agent
+// $log->created_at
+```
+
+#### Reverting to a Previous State
+
+```php
+$post = Post::find(1);
+
+// Get an older 'updated' log
+$log = $post->auditLogs()->where('event', 'updated')->latest('id')->first();
+
+// Restore the model to that state
+$post->revertTo($log); // returns true on success
+```
 
 `revertTo()` behavior:
 
@@ -276,10 +368,46 @@ that restores the current model instance to a previously logged state.
     - The provided log does not belong to the current model (`auditable_type` / `auditable_id` mismatch).
     - The provided log has no `old_values` and therefore cannot be reverted.
 
-Practical note:
+> `updated`, `deleted`, and `reverted` logs are typically revertible (they include `old_values`).  
+> `created` and `restored` logs are typically not revertible because they do not include `old_values`.
 
-- `updated`, `deleted`, and `reverted` logs are typically revertible (they include `old_values`).
-- `created` and `restored` logs are typically not revertible because they usually do not include `old_values`.
+#### Diffing Between Two Logs
+
+```php
+$logs = $post->auditLogs()->where('event', 'updated')->oldest('id')->get();
+
+$diff = $post->diffBetween($logs->first(), $logs->last());
+// [
+//   'title' => ['from' => 'Old Title', 'to' => 'New Title'],
+//   'status' => ['from' => 'draft', 'to' => 'published'],
+// ]
+```
+
+#### Pruning Old Logs
+
+```php
+use ErnestoCh\UserAuditable\Models\AuditLog;
+
+// Delete all entries older than 90 days
+$deleted = AuditLog::pruneOlderThan(90);
+```
+
+#### Configuration
+
+```php
+// config/user-auditable.php
+'change_tracking' => [
+    'enabled'            => true,
+    'table'              => 'audit_logs',
+    'retain_days'        => null,    // null = keep forever
+    'log_created'        => true,
+    'log_updated'        => true,
+    'log_deleted'        => true,
+    'log_restored'       => true,
+    'user_resolver'      => null,    // callable($model): mixed
+    'user_type_resolver' => null,    // callable($model): string|null
+],
+```
 
 ## Available Macros
 

@@ -11,7 +11,7 @@ trait EventAuditable
     /**
      * Cache for database column existence checks
      */
-    public array $auditableColumnCache = [];
+    protected array $auditableColumnCache = [];
 
     /**
      * Handle dynamic event methods like releasedBy(), approvedAt(), etc.

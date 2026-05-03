@@ -423,4 +423,40 @@ class UserAuditableServiceProvider extends ServiceProvider
             return $this;
         });
     }
+
+    protected function auditLogTable(): void
+    {
+        Blueprint::macro('auditLogTable', function () {
+            /** @var Blueprint $this */
+            $this->id();
+            $this->string('auditable_type');
+            $this->string('auditable_id');
+            $this->string('event');
+            $this->json('old_values')->nullable();
+            $this->json('new_values')->nullable();
+            $this->string('user_id')->nullable();
+            $this->string('user_type')->nullable();
+            $this->string('ip_address', 45)->nullable();
+            $this->text('user_agent')->nullable();
+            $this->json('tags')->nullable();
+            $this->timestamp('created_at')->useCurrent();
+
+            $this->index(['auditable_type', 'auditable_id']);
+            $this->index('event');
+            $this->index('user_id');
+            $this->index('created_at');
+
+            return $this;
+        });
+    }
+
+    protected function dropAuditLogTable(): void
+    {
+        Blueprint::macro('dropAuditLogTable', function () {
+            /** @var Blueprint $this */
+            $tableName = $this->getTable();
+            \Illuminate\Support\Facades\Schema::dropIfExists($tableName);
+            return $this;
+        });
+    }
 }

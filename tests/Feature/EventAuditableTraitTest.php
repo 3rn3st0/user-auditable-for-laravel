@@ -222,8 +222,13 @@ class EventAuditableTraitTest extends TestCase
         $model->releasedBy();
 
         // Verify cache is populated
-        $this->assertArrayHasKey('released_by', $model->auditableColumnCache);
-        $this->assertTrue($model->auditableColumnCache['released_by']);
+        $reflection = new \ReflectionClass($model);
+        $property = $reflection->getProperty('auditableColumnCache');
+        $property->setAccessible(true);
+        $cache = $property->getValue($model);
+
+        $this->assertArrayHasKey('released_by', $cache);
+        $this->assertTrue($cache['released_by']);
     }
 
     #[Test]

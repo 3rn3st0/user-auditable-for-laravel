@@ -33,6 +33,8 @@ class ServiceProviderTest extends TestCase
             'fullAuditable',
             'eventAuditable',
             'dropEventAuditable',
+            'auditLogTable',
+            'dropAuditLogTable',
         ];
 
         foreach ($macros as $macro) {
@@ -50,6 +52,7 @@ class ServiceProviderTest extends TestCase
 
         $this->assertIsArray($config);
         $this->assertArrayHasKey('enabled_macros', $config);
+        $this->assertArrayHasKey('change_tracking', $config);
     }
 
     #[Test]
